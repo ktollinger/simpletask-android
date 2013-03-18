@@ -112,6 +112,7 @@ public class TodoTxtTouch extends ListActivity {
                     Log.v(TAG, "received INTENT_RELOAD_TASKBAG");
                     m_app.initTaskBag();
                     m_adapter.setFilteredTasks();
+                    m_app.updateWidgets();
                 }
             }
         };
@@ -729,21 +730,15 @@ public class TodoTxtTouch extends ListActivity {
     public void startFilterActivity() {
         Intent i = new Intent(this, FilterActivity.class);
 
-        i.putStringArrayListExtra(Constants.EXTRA_PRIORITIES,
-                Priority.inCode(m_app.getTaskBag().getPriorities()));
-        i.putStringArrayListExtra(Constants.EXTRA_PROJECTS,
-                m_app.getTaskBag().getProjects());
-        i.putStringArrayListExtra(Constants.EXTRA_CONTEXTS,
-                m_app.getTaskBag().getContexts());
 
         i.putStringArrayListExtra(Constants.EXTRA_PRIORITIES_SELECTED,
                 Priority.inCode(m_prios));
         i.putStringArrayListExtra(Constants.EXTRA_PROJECTS_SELECTED, m_projects);
         i.putStringArrayListExtra(Constants.EXTRA_CONTEXTS_SELECTED, m_contexts);
         i.putExtra(Constants.EXTRA_SORT_SELECTED, m_sort);
-        i.putExtra(Constants.EXTRA_CONTEXTS + "not", m_contextsNot);
-        i.putExtra(Constants.EXTRA_PRIORITIES + "not", m_priosNot);
-        i.putExtra(Constants.EXTRA_PROJECTS + "not", m_projectsNot);
+        i.putExtra(Constants.EXTRA_CONTEXTS_NOT_SELECTED, m_contextsNot);
+        i.putExtra(Constants.EXTRA_PRIORITIES_NOT_SELECTED, m_priosNot);
+        i.putExtra(Constants.EXTRA_PROJECTS_NOT_SELECTED, m_projectsNot);
         i.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(i);
     }

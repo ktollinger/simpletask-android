@@ -36,13 +36,16 @@ public class Constants {
 
     // Constants for passing data
     public final static String EXTRA_SORT_SELECTED = "SORT";
-    public final static String EXTRA_PRIORITIES = "PRIORITIES";
     public final static String EXTRA_PRIORITIES_SELECTED = "PRIORITIES_SELECTED";
-    public final static String EXTRA_PROJECTS = "PROJECTS";
     public final static String EXTRA_PROJECTS_SELECTED = "PROJECTS_SELECTED";
-    public final static String EXTRA_CONTEXTS = "CONTEXTS";
     public final static String EXTRA_CONTEXTS_SELECTED = "CONTEXTS_SELECTED";
+    public final static String EXTRA_PRIORITIES_NOT_SELECTED = "PRIORITIES_NOT_SELECTED";
+    public final static String EXTRA_PROJECTS_NOT_SELECTED = "PROJECTS_NOT_SELECTED";
+    public final static String EXTRA_CONTEXTS_NOT_SELECTED = "CONTEXTS_NOT_SELECTED";
     public final static String EXTRA_TASK = "TASK";
+    public final static String CONTEXTS_TAG = "CONTEXTS";
+    public final static String PRIORITIES_TAG = "PRIOS";
+    public final static String PROJECTS_TAG = "PROJECTS";
 
     // Constants for fragment arguments
     public final static String ITEMS = "ITEMS";

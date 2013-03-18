@@ -99,6 +99,7 @@ You should have received a copy of the GNU General Public License along with Sim
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH"/>
             </intent-filter>
@@ -137,6 +138,20 @@ You should have received a copy of the GNU General Public License along with Sim
                 android:enabled="true"
                 android:exported="false"
                 android:label="Dropbox Sync"/>
+
+        <receiver android:name="nl.mpcjanssen.todotxtholo.TodoAppWidgetProvider" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/appwidget_info" />
+        </receiver>
+
+        <service android:name="AppWidgetService"
+                 android:permission="android.permission.BIND_REMOTEVIEWS"
+                 android:exported="false"  />
 
     </application>
 

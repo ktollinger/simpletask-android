@@ -25,6 +25,8 @@ package nl.mpcjanssen.todotxtholo;
 import android.app.Activity;
 import android.app.Application;
 import android.app.NotificationManager;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -34,6 +36,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import com.dropbox.sync.android.*;
+import nl.mpcjanssen.todotxtholo.task.Priority;
 import nl.mpcjanssen.todotxtholo.task.Task;
 import nl.mpcjanssen.todotxtholo.task.TaskBag;
 
@@ -55,6 +58,7 @@ public class TodoApplication extends Application implements
     private DbxPath mTodoPath = new DbxPath("todo.txt");
     private DbxPath mDonePath = new DbxPath("done.txt");
     private SharedPreferences mPrefs;
+    public static Context mAppContext;
 
 
     @Override
@@ -139,6 +143,7 @@ public class TodoApplication extends Application implements
     @Override
     public void onCreate() {
         super.onCreate();
+        TodoApplication.mAppContext = getApplicationContext();
         mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(),
                 getString(R.string.dropbox_consumer_key), getString(R.string.dropbox_consumer_secret));
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -146,6 +151,14 @@ public class TodoApplication extends Application implements
 
     public boolean isAuthenticated() {
         return mDbxAcctMgr.hasLinkedAccount();
+    }
+
+    public void updateWidgets() {
+        AppWidgetManager mgr = AppWidgetManager.getInstance(getApplicationContext());
+        for (int appWidgetId : mgr.getAppWidgetIds(new ComponentName(getApplicationContext(), TodoAppWidgetProvider.class))) {
+            mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetlv);
+            Log.v(TAG, "Updating widget: " + appWidgetId);
+        }
     }
 
     public void storeTaskbag(TaskBag bag, DbxPath path) {
@@ -221,6 +234,18 @@ public class TodoApplication extends Application implements
         }
     }
 
+    public ArrayList<String> getContexts() {
+        return mTaskBag.getContexts();
+    }
+
+    public ArrayList<String> getProjects() {
+        return mTaskBag.getProjects();
+    }
+
+    public ArrayList<String> getPriorities() {
+        return Priority.inCode(mTaskBag.getPriorities());
+    }
+
     public void archiveTasks() {
         List<Task> completedTasks = getTaskBag().completedTasks();
         // Create a new completed taskbag
@@ -241,5 +266,9 @@ public class TodoApplication extends Application implements
 
     public void storeTaskbag() {
         storeTaskbag(mTaskBag,mTodoPath);
+    }
+
+    public static Context getAppContext() {
+        return mAppContext;
     }
 }

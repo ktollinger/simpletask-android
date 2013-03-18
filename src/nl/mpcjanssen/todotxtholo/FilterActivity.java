@@ -2,8 +2,10 @@ package nl.mpcjanssen.todotxtholo;
 
 import android.app.*;
 import android.app.ActionBar.Tab;
+import android.appwidget.AppWidgetManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -12,18 +14,33 @@ import android.widget.EditText;
 import nl.mpcjanssen.todotxtholo.util.Util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class FilterActivity extends Activity {
 
 	final static String TAG = FilterActivity.class.getSimpleName();
 	Menu menu;
 	private ActionBar actionbar;
+    private boolean asWidgetConfigure;
 
-	@Override
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v(TAG, "Called with intent: " + getIntent().toString());
 		super.onCreate(savedInstanceState);
+        TodoApplication app = (TodoApplication)getApplication();
+        app = (TodoApplication)getApplication();
+        if (!app.isAuthenticated()) {
+            Intent i = new Intent(this, LoginScreen.class);
+            startActivity(i);
+            finish();
+            return;
+        }
+        app.initTaskBag();
 		setContentView(R.layout.filter);
+
+        if (getIntent().getAction()!=null) {
+            asWidgetConfigure = getIntent().getAction().equals(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+        }
 		Bundle arguments;
 		actionbar = getActionBar();
 		actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -31,62 +48,59 @@ public class FilterActivity extends Activity {
 		// Fill arguments for fragment
 		arguments = new Bundle();
 
-		arguments.putStringArrayList(Constants.ITEMS, getIntent()
-				.getStringArrayListExtra(Constants.EXTRA_CONTEXTS));
+		arguments.putStringArrayList(Constants.ITEMS, app.getContexts());
 
 		arguments.putStringArrayList(
 				Constants.INITIAL_SELECTED_ITEMS,
 				getIntent().getStringArrayListExtra(
 						Constants.EXTRA_CONTEXTS_SELECTED));
 		arguments.putBoolean(Constants.INITIAL_NOT, getIntent()
-				.getBooleanExtra(Constants.EXTRA_CONTEXTS + "not", false));
+				.getBooleanExtra(Constants.EXTRA_CONTEXTS_NOT_SELECTED, false));
 		actionbar.addTab(actionbar
 				.newTab()
 				.setText(getString(R.string.context_prompt))
 				.setTabListener(
-						new MyTabsListener(this, Constants.EXTRA_CONTEXTS,
+						new MyTabsListener(this, Constants.CONTEXTS_TAG,
 								FilterListFragment.class, arguments))
-				.setTag(Constants.EXTRA_CONTEXTS));
+				.setTag(Constants.CONTEXTS_TAG));
 
 		// Fill arguments for fragment
 		arguments = new Bundle();
 
-		arguments.putStringArrayList(Constants.ITEMS, getIntent()
-				.getStringArrayListExtra(Constants.EXTRA_PROJECTS));
+		arguments.putStringArrayList(Constants.ITEMS, app.getProjects());
 
 		arguments.putStringArrayList(
 				Constants.INITIAL_SELECTED_ITEMS,
 				getIntent().getStringArrayListExtra(
 						Constants.EXTRA_PROJECTS_SELECTED));
 		arguments.putBoolean(Constants.INITIAL_NOT, getIntent()
-				.getBooleanExtra(Constants.EXTRA_PROJECTS + "not", false));
+                .getBooleanExtra(Constants.EXTRA_PROJECTS_NOT_SELECTED, false));
 		actionbar.addTab(actionbar
-				.newTab()
-				.setText(getString(R.string.project_prompt))
-				.setTabListener(
-						new MyTabsListener(this, Constants.EXTRA_PROJECTS,
-								FilterListFragment.class, arguments))
-				.setTag(Constants.EXTRA_PROJECTS));
+                .newTab()
+                .setText(getString(R.string.project_prompt))
+                .setTabListener(
+                        new MyTabsListener(this, Constants.PROJECTS_TAG,
+                                FilterListFragment.class, arguments))
+                .setTag(Constants.PROJECTS_TAG));
 
 		// Fill arguments for fragment
 		arguments = new Bundle();
 
-		arguments.putStringArrayList(Constants.ITEMS, getIntent()
-				.getStringArrayListExtra(Constants.EXTRA_PRIORITIES));
+		arguments.putStringArrayList(Constants.ITEMS, app.getPriorities());
 
 		arguments.putStringArrayList(
 				Constants.INITIAL_SELECTED_ITEMS,
 				getIntent().getStringArrayListExtra(
 						Constants.EXTRA_PRIORITIES_SELECTED));
 		arguments.putBoolean(Constants.INITIAL_NOT, getIntent()
-				.getBooleanExtra(Constants.EXTRA_PRIORITIES + "not", false));
+				.getBooleanExtra(Constants.EXTRA_PRIORITIES_NOT_SELECTED, false));
 		actionbar.addTab(actionbar
 				.newTab()
 				.setText(getString(R.string.priority_short_prompt))
 				.setTabListener(
-						new MyTabsListener(this, Constants.EXTRA_PRIORITIES,
+						new MyTabsListener(this, Constants.PRIORITIES_TAG,
 								FilterListFragment.class, arguments))
-				.setTag(Constants.EXTRA_PRIORITIES));
+				.setTag(Constants.PRIORITIES_TAG));
 
 		// Fill arguments for fragment
 		arguments = new Bundle();
@@ -115,9 +129,11 @@ public class FilterActivity extends Activity {
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_apply_filter:
-
-			applyFilter();
-
+            if (asWidgetConfigure) {
+                configureWidget();
+            } else {
+                applyFilter();
+            }
 			break;
 		case R.id.menu_select_all:
 			selectAll();
@@ -169,9 +185,9 @@ public class FilterActivity extends Activity {
 		Intent target = new Intent(Constants.INTENT_START_FROM_SHORTCUT);
 		String name = "";
 		ArrayList<String> appliedFilters = new ArrayList<String>();
-		ArrayList<String> contextFilter = getFilter(Constants.EXTRA_CONTEXTS);
-		ArrayList<String> projectsFilter = getFilter(Constants.EXTRA_PROJECTS);
-		ArrayList<String> prioritiesFilter = getFilter(Constants.EXTRA_PRIORITIES);
+		ArrayList<String> contextFilter = getFilter(Constants.CONTEXTS_TAG);
+		ArrayList<String> projectsFilter = getFilter(Constants.PROJECTS_TAG);
+		ArrayList<String> prioritiesFilter = getFilter(Constants.PRIORITIES_TAG);
 		appliedFilters.addAll(contextFilter);
 		appliedFilters.addAll(prioritiesFilter);
 		appliedFilters.addAll(projectsFilter);
@@ -179,15 +195,15 @@ public class FilterActivity extends Activity {
 		target.putExtra(Constants.INTENT_CONTEXTS_FILTER,
 				Util.join(contextFilter, "\n"));
 		target.putExtra(Constants.INTENT_CONTEXTS_FILTER_NOT,
-				getNot(Constants.EXTRA_CONTEXTS));
+				getNot(Constants.CONTEXTS_TAG));
 		target.putExtra(Constants.INTENT_PROJECTS_FILTER,
 				Util.join(projectsFilter, "\n"));
 		target.putExtra(Constants.INTENT_PROJECTS_FILTER_NOT,
-				getNot(Constants.EXTRA_PROJECTS));
+				getNot(Constants.PROJECTS_TAG));
 		target.putExtra(Constants.INTENT_PRIORITIES_FILTER,
 				Util.join(prioritiesFilter, "\n"));
 		target.putExtra(Constants.INTENT_PRIORITIES_FILTER_NOT,
-				getNot(Constants.EXTRA_PRIORITIES));
+				getNot(Constants.PRIORITIES_TAG));
 		target.putExtra(
 				Constants.INTENT_ACTIVE_SORT,
 				getSelectedItem(
@@ -249,6 +265,34 @@ public class FilterActivity extends Activity {
 		Intent data = createFilterIntent();
 		startActivity(data);
 	}
+
+    private void configureWidget() {
+        int mAppWidgetId;
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            mAppWidgetId = extras.getInt(
+                    AppWidgetManager.EXTRA_APPWIDGET_ID,
+                    AppWidgetManager.INVALID_APPWIDGET_ID);
+
+            // Store widget filter
+            SharedPreferences preferences = getApplicationContext().getSharedPreferences("" + mAppWidgetId, MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putStringSet(Constants.INTENT_CONTEXTS_FILTER, new HashSet<String>(getFilter(Constants.CONTEXTS_TAG)));
+            editor.putBoolean(Constants.INTENT_CONTEXTS_FILTER_NOT, getNot(Constants.CONTEXTS_TAG));
+            editor.putStringSet(Constants.INTENT_PROJECTS_FILTER, new HashSet<String>(getFilter(Constants.PROJECTS_TAG)));
+            editor.putBoolean(Constants.INTENT_PROJECTS_FILTER_NOT, getNot(Constants.PROJECTS_TAG));
+            editor.putStringSet(Constants.INTENT_PRIORITIES_FILTER, new HashSet<String>(getFilter(Constants.PRIORITIES_TAG)));
+            editor.putBoolean(Constants.INTENT_PRIORITIES_FILTER_NOT, getNot(Constants.PRIORITIES_TAG));
+            editor.putString(Constants.INTENT_ACTIVE_SORT, getSelectedItem(getString(R.string.sort),""));
+            editor.commit();
+
+            Intent resultValue = new Intent(getApplicationContext(), AppWidgetService.class);
+            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+            setResult(RESULT_OK, resultValue);
+            finish();
+        }
+    }
 
 	private void createFilterShortcut() {
 		final Intent shortcut = new Intent(
