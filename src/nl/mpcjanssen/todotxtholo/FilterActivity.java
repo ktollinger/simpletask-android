@@ -166,7 +166,7 @@ public class FilterActivity extends Activity {
 	}
 
 	private Intent createFilterIntent() {
-		Intent target = new Intent(this, TodoTxtTouch.class);
+		Intent target = new Intent(Constants.INTENT_FROM_SHORTCUT);
 		String name = "";
 		ArrayList<String> appliedFilters = new ArrayList<String>();
 		ArrayList<String> contextFilter = getFilter(Constants.EXTRA_CONTEXTS);

@@ -64,7 +64,6 @@ public class TodoTxtTouch extends ListActivity {
     private boolean m_priosNot;
     private boolean m_contextsNot;
     private String m_search;
-    private Preferences m_prefs;
 
 
     TaskAdapter m_adapter;
@@ -95,7 +94,7 @@ public class TodoTxtTouch extends ListActivity {
         if (!projects.equals("")) {
             m_projects.addAll(Arrays.asList(projects.split("\n")));
         }
-        if (sorts.equals("")) {
+        if (!sorts.equals("")) {
             m_sorts.addAll(Arrays.asList(sorts.split("\n")));
         }
         m_search = m_prefs.getString("m_search","");

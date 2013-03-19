@@ -51,4 +51,5 @@ public class Constants {
 
     // Intents for main app
     public static final String INTENT_RELOAD_TASKBAG = "nl.mpcjanssen.todotxtholo.RELOAD_TASK_BAG";
+    public static final String INTENT_FROM_SHORTCUT = "nl.mpcjanssen.todotxtholo.START_FROM_SHORTCUT";
 }

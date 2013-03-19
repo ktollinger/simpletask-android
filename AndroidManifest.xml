@@ -103,6 +103,7 @@ You should have received a copy of the GNU General Public License along with Sim
             </intent-filter>
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="nl.mpcjanssen.todotxtholo.START_FROM_SHORTCUT"/>
             </intent-filter>
 
             <meta-data
