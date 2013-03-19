@@ -41,9 +41,6 @@ public class Preferences extends PreferenceActivity {
         addPreferencesFromResource(R.xml.preferences);
     }
 
-    
-    
-    
 	@Override
 	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
 		if(preference.getKey()!=null && preference.getKey().equals("logout_dropbox")) {

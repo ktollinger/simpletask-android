@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <ListPreference
-            android:key="@string/default_sort_pref_key"
-            android:title="@string/default_sort_pref_title"
-            android:summary="@string/default_sort_pref_summary"
-            android:entries="@array/sort"
-            android:entryValues="@array/sortValues"
-            android:defaultValue="sort_by_context"
-            />
     <CheckBoxPreference
             android:key="@string/windows_line_breaks_pref_key"
             android:title="@string/line_breaks_pref_title"

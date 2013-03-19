@@ -221,7 +221,7 @@ public class TodoTxtTouch extends ListActivity {
                 m_sorts = new ArrayList<String>(Arrays.asList(sorts
                         .split("\n")));
             } else {
-                m_sorts.add(m_app.getDefaultSort());
+                m_sorts.addAll(m_app.getDefaultSort());
             }
         }  else {
             restoreFilter();
@@ -500,7 +500,7 @@ public class TodoTxtTouch extends ListActivity {
         m_prios = new ArrayList<Priority>();
         m_projects = new ArrayList<String>();
         m_sorts  = new ArrayList<String>();
-        m_sorts.add(m_app.getDefaultSort());
+        m_sorts.addAll(m_app.getDefaultSort());
         m_priosNot = false;
         m_projectsNot = false;
         m_contextsNot = false;
@@ -511,7 +511,7 @@ public class TodoTxtTouch extends ListActivity {
         List<Comparator<?>> comparators = new ArrayList<Comparator<?>>();
         // Sort completed last
         if (m_sorts.size()==0) {
-            m_sorts.add(m_app.getDefaultSort());
+            m_sorts.addAll(m_app.getDefaultSort());
         }
         for (String sort : m_sorts) {
             if (sort.equals("sort_file_order")) {
