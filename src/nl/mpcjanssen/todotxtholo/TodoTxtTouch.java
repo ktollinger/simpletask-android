@@ -64,6 +64,7 @@ public class TodoTxtTouch extends ListActivity {
     private boolean m_priosNot;
     private boolean m_contextsNot;
     private String m_search;
+    private Preferences m_prefs;
 
 
     TaskAdapter m_adapter;
@@ -78,10 +79,46 @@ public class TodoTxtTouch extends ListActivity {
         m_app.updateFromDropbox(false);
     }
 
+    protected void restoreFilter() {
+        clearFilter();
+        SharedPreferences m_prefs = getSharedPreferences("filter", MODE_PRIVATE);
+        String prios = m_prefs.getString("m_prios", "");
+        String contexts = m_prefs.getString("m_contexts", "");
+        String sorts = m_prefs.getString("m_sorts", "");
+        String projects = m_prefs.getString("m_projects", "");
+        if (!prios.equals("")) {
+            m_prios = Priority.toPriority(Arrays.asList(prios.split("\n")));
+        }
+        if (!contexts.equals("")) {
+            m_contexts.addAll(Arrays.asList(contexts.split("\n")));
+        }
+        if (!projects.equals("")) {
+            m_projects.addAll(Arrays.asList(projects.split("\n")));
+        }
+        if (sorts.equals("")) {
+            m_sorts.addAll(Arrays.asList(sorts.split("\n")));
+        }
+        m_search = m_prefs.getString("m_search","");
+        m_projectsNot = m_prefs.getBoolean("m_projectsNot",false);
+        m_priosNot = m_prefs.getBoolean("m_priosNot", false);
+        m_contextsNot = m_prefs.getBoolean("m_contextsNot", false);
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
         Log.v(TAG, "onPause: " + getIntent());
+        SharedPreferences m_prefs = getSharedPreferences("filter", MODE_PRIVATE);
+        SharedPreferences.Editor edit = m_prefs.edit();
+        edit.putString("m_prios", Util.join(Priority.inCode(m_prios),"\n"));
+        edit.putString("m_contexts", Util.join(m_contexts,"\n"));
+        edit.putString("m_projects", Util.join(m_projects,"\n"));
+        edit.putBoolean("m_projectsNot", m_projectsNot);
+        edit.putBoolean("m_priosNot", m_priosNot);
+        edit.putBoolean("m_contextsNot", m_contextsNot);
+        edit.putString("m_search", m_search);
+        edit.putString("m_sorts", Util.join(m_sorts, "\n"));
+        edit.commit();
         m_app.updateFromDropbox(false);
     }
 
@@ -187,16 +224,8 @@ public class TodoTxtTouch extends ListActivity {
             } else {
                 m_sorts.add(m_app.getDefaultSort());
             }
-        }  else if (savedInstanceState != null) {
-            m_prios = Priority.toPriority(savedInstanceState
-                    .getStringArrayList("m_prios"));
-            m_contexts = savedInstanceState.getStringArrayList("m_contexts");
-            m_projects = savedInstanceState.getStringArrayList("m_projects");
-            m_search = savedInstanceState.getString("m_search");
-            m_projectsNot = savedInstanceState.getBoolean("m_projectsNot");
-            m_priosNot = savedInstanceState.getBoolean("m_priosNot");
-            m_contextsNot = savedInstanceState.getBoolean("m_contextsNot");
-            m_sorts = savedInstanceState.getStringArrayList("sort");
+        }  else {
+            restoreFilter();
         }
     }
 
@@ -252,12 +281,12 @@ public class TodoTxtTouch extends ListActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent);
         Log.v(TAG, "Calling with new intent: " + intent);
         if (loginIfNeeded()) {
             return;
         }
         if (intent.getExtras() != null) {
+            setIntent(intent);
             handleIntent(intent, null);
         }
         m_app.updateFromDropbox(true);
@@ -451,6 +480,7 @@ public class TodoTxtTouch extends ListActivity {
             finish();
         } else { // otherwise just clear the filter in the current activity
             clearFilter();
+            m_adapter.setFilteredTasks();
         }
     }
 
@@ -476,7 +506,6 @@ public class TodoTxtTouch extends ListActivity {
         m_projectsNot = false;
         m_contextsNot = false;
         m_search = null;
-        m_adapter.setFilteredTasks();
     }
 
     private MultiComparator getActiveSort() {
