@@ -78,10 +78,46 @@ public class TodoTxtTouch extends ListActivity {
         m_app.updateFromDropbox(false);
     }
 
+    protected void restoreFilter() {
+        clearFilter();
+        SharedPreferences m_prefs = getSharedPreferences("filter", MODE_PRIVATE);
+        String prios = m_prefs.getString("m_prios", "");
+        String contexts = m_prefs.getString("m_contexts", "");
+        String sorts = m_prefs.getString("m_sorts", "");
+        String projects = m_prefs.getString("m_projects", "");
+        if (!prios.equals("")) {
+            m_prios = Priority.toPriority(Arrays.asList(prios.split("\n")));
+        }
+        if (!contexts.equals("")) {
+            m_contexts.addAll(Arrays.asList(contexts.split("\n")));
+        }
+        if (!projects.equals("")) {
+            m_projects.addAll(Arrays.asList(projects.split("\n")));
+        }
+        if (!sorts.equals("")) {
+            m_sorts.addAll(Arrays.asList(sorts.split("\n")));
+        }
+        m_search = m_prefs.getString("m_search","");
+        m_projectsNot = m_prefs.getBoolean("m_projectsNot",false);
+        m_priosNot = m_prefs.getBoolean("m_priosNot", false);
+        m_contextsNot = m_prefs.getBoolean("m_contextsNot", false);
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
         Log.v(TAG, "onPause: " + getIntent());
+        SharedPreferences m_prefs = getSharedPreferences("filter", MODE_PRIVATE);
+        SharedPreferences.Editor edit = m_prefs.edit();
+        edit.putString("m_prios", Util.join(Priority.inCode(m_prios),"\n"));
+        edit.putString("m_contexts", Util.join(m_contexts,"\n"));
+        edit.putString("m_projects", Util.join(m_projects,"\n"));
+        edit.putBoolean("m_projectsNot", m_projectsNot);
+        edit.putBoolean("m_priosNot", m_priosNot);
+        edit.putBoolean("m_contextsNot", m_contextsNot);
+        edit.putString("m_search", m_search);
+        edit.putString("m_sorts", Util.join(m_sorts, "\n"));
+        edit.commit();
         m_app.updateFromDropbox(false);
     }
 
@@ -185,18 +221,10 @@ public class TodoTxtTouch extends ListActivity {
                 m_sorts = new ArrayList<String>(Arrays.asList(sorts
                         .split("\n")));
             } else {
-                m_sorts.add(m_app.getDefaultSort());
+                m_sorts.addAll(m_app.getDefaultSort());
             }
-        }  else if (savedInstanceState != null) {
-            m_prios = Priority.toPriority(savedInstanceState
-                    .getStringArrayList("m_prios"));
-            m_contexts = savedInstanceState.getStringArrayList("m_contexts");
-            m_projects = savedInstanceState.getStringArrayList("m_projects");
-            m_search = savedInstanceState.getString("m_search");
-            m_projectsNot = savedInstanceState.getBoolean("m_projectsNot");
-            m_priosNot = savedInstanceState.getBoolean("m_priosNot");
-            m_contextsNot = savedInstanceState.getBoolean("m_contextsNot");
-            m_sorts = savedInstanceState.getStringArrayList("sort");
+        }  else {
+            restoreFilter();
         }
     }
 
@@ -257,6 +285,7 @@ public class TodoTxtTouch extends ListActivity {
             return;
         }
         if (intent.getExtras() != null) {
+            setIntent(intent);
             handleIntent(intent, null);
         }
         m_app.updateFromDropbox(true);
@@ -450,6 +479,7 @@ public class TodoTxtTouch extends ListActivity {
             finish();
         } else { // otherwise just clear the filter in the current activity
             clearFilter();
+            m_adapter.setFilteredTasks();
         }
     }
 
@@ -470,21 +500,19 @@ public class TodoTxtTouch extends ListActivity {
         m_prios = new ArrayList<Priority>();
         m_projects = new ArrayList<String>();
         m_sorts  = new ArrayList<String>();
-        m_sorts.add(m_app.getDefaultSort());
+        m_sorts.addAll(m_app.getDefaultSort());
         m_priosNot = false;
         m_projectsNot = false;
         m_contextsNot = false;
         m_search = null;
-        m_adapter.setFilteredTasks();
     }
 
     private MultiComparator getActiveSort() {
         List<Comparator<?>> comparators = new ArrayList<Comparator<?>>();
         // Sort completed last
         if (m_sorts.size()==0) {
-            m_sorts.add(m_app.getDefaultSort());
+            m_sorts.addAll(m_app.getDefaultSort());
         }
-        comparators.add(new CompletedComparator());
         for (String sort : m_sorts) {
             if (sort.equals("sort_file_order")) {
                 // no additional sorting
@@ -498,7 +526,9 @@ public class TodoTxtTouch extends ListActivity {
                 comparators.add(new AlphabeticalComparator());
             } else if (sort.equals("sort_by_prio")) {
                 comparators.add(new PriorityComparator());
-            } else {
+            } else if (sort.equals("sort_completed_last")) {
+                comparators.add(new CompletedComparator());
+            }  else {
                 Log.w(TAG, "Unknown sort: " + sort);
             }
         }
@@ -534,7 +564,7 @@ public class TodoTxtTouch extends ListActivity {
             headerAtPostion.clear();
             String header = "";
             int position = 0;
-            if (m_sorts.get(0).equals("sort_by_context")) {
+            if (m_sorts.contains("sort_by_context")) {
                 for (Task t : visibleTasks) {
                     List<String> taskItems = t.getContexts();
                     String newHeader;
@@ -550,7 +580,7 @@ public class TodoTxtTouch extends ListActivity {
                     }
                     position++;
                 }
-            } else if (m_sorts.get(0).equals("sort_by_project")) {
+            } else if (m_sorts.contains("sort_by_project")) {
                 for (Task t : visibleTasks) {
                     List<String> taskItems = t.getProjects();
                     String newHeader;

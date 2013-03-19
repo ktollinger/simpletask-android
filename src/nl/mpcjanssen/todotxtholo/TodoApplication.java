@@ -208,9 +208,11 @@ public class TodoApplication extends Application implements
         sendBroadcast(i);
     }
 
-    public String getDefaultSort() {
-        String[] sortValues = getResources().getStringArray(R.array.sortValues);
-        return mPrefs.getString(getString(R.string.default_sort_pref_key), "sort_by_context");
+    public ArrayList<String> getDefaultSort() {
+        ArrayList<String> result = new ArrayList<String>();
+        result.add("sort_completed_last");
+        result.add("sort_by_context");
+        return result;
     }
 
     public String getLineBreak() {
