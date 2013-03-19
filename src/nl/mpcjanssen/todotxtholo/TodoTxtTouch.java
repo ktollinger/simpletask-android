@@ -252,6 +252,7 @@ public class TodoTxtTouch extends ListActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        setIntent(intent);
         Log.v(TAG, "Calling with new intent: " + intent);
         if (loginIfNeeded()) {
             return;
@@ -484,7 +485,6 @@ public class TodoTxtTouch extends ListActivity {
         if (m_sorts.size()==0) {
             m_sorts.add(m_app.getDefaultSort());
         }
-        comparators.add(new CompletedComparator());
         for (String sort : m_sorts) {
             if (sort.equals("sort_file_order")) {
                 // no additional sorting
@@ -498,7 +498,9 @@ public class TodoTxtTouch extends ListActivity {
                 comparators.add(new AlphabeticalComparator());
             } else if (sort.equals("sort_by_prio")) {
                 comparators.add(new PriorityComparator());
-            } else {
+            } else if (sort.equals("sort_completed_last")) {
+                comparators.add(new CompletedComparator());
+            }  else {
                 Log.w(TAG, "Unknown sort: " + sort);
             }
         }
@@ -534,7 +536,7 @@ public class TodoTxtTouch extends ListActivity {
             headerAtPostion.clear();
             String header = "";
             int position = 0;
-            if (m_sorts.get(0).equals("sort_by_context")) {
+            if (m_sorts.contains("sort_by_context")) {
                 for (Task t : visibleTasks) {
                     List<String> taskItems = t.getContexts();
                     String newHeader;
@@ -550,7 +552,7 @@ public class TodoTxtTouch extends ListActivity {
                     }
                     position++;
                 }
-            } else if (m_sorts.get(0).equals("sort_by_project")) {
+            } else if (m_sorts.contains("sort_by_project")) {
                 for (Task t : visibleTasks) {
                     List<String> taskItems = t.getProjects();
                     String newHeader;

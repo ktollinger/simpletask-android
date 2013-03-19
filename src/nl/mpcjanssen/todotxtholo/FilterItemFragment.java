@@ -17,15 +17,29 @@ public class FilterItemFragment extends Fragment {
     private final static String STATE_SELECTED = "selectedItem";
 
     private ArrayList<String> selectedItems;
-    ArrayList<Spinner> selectedFilters = new ArrayList<Spinner>();;
+    ArrayList<Spinner> selectedFilters;
     private int itemsId;
     private LinearLayout layout;
     private LinearLayout spinnerLayout;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        super.onCreate(savedInstanceState);
+        Log.v(TAG, "onCreate() this:" + this);
+    }
+
+    @Override
+    public void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+        Log.v(TAG, "onDestroy() this:" + this);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        Log.v(TAG, "onCreateView() this:" + this + " savedInstance: " + savedInstanceState);
         Bundle arguments = getArguments();
         if (savedInstanceState != null) {
             itemsId = savedInstanceState.getInt(STATE_ITEMS);
@@ -34,23 +48,27 @@ public class FilterItemFragment extends Fragment {
             selectedItems = arguments.getStringArrayList(Constants.INITIAL_SELECTED_ITEMS);
             itemsId = arguments.getInt(Constants.ITEMS);
         }
-
-        layout = (LinearLayout) inflater.inflate(R.layout.single_filter,
-                container, false);
-
-        spinnerLayout = (LinearLayout)layout.findViewById(R.id.spinnerlayout);
-        String[] itemValues = getResources().getStringArray(R.array.sortValues);
-        for (String item : selectedItems) {
-            Spinner spin = new Spinner(this.getActivity(), Spinner.MODE_DROPDOWN);
-            ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this.getActivity(),
-                    android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.sort));
-            int index = Arrays.asList(itemValues).indexOf(item);
-            spin.setAdapter(dataAdapter);
-            spin.setSelection(index);
-            selectedFilters.add(spin);
-            spinnerLayout.addView(spin);
+        if (selectedFilters==null) {
+            selectedFilters = new ArrayList<Spinner>();
         }
 
+
+        String[] itemValues = getResources().getStringArray(R.array.sortValues);
+        if (selectedFilters.size() == 0) {
+            layout = (LinearLayout) inflater.inflate(R.layout.single_filter,
+                    container, false);
+            spinnerLayout = (LinearLayout)layout.findViewById(R.id.spinnerlayout);
+            for (String item : selectedItems) {
+                Spinner spin = new Spinner(this.getActivity(), Spinner.MODE_DROPDOWN);
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this.getActivity(),
+                        android.R.layout.simple_spinner_dropdown_item, getResources().getStringArray(R.array.sort));
+                int index = Arrays.asList(itemValues).indexOf(item);
+                spin.setAdapter(dataAdapter);
+                spin.setSelection(index);
+                selectedFilters.add(spin);
+                spinnerLayout.addView(spin);
+            }
+        }
 
 
         layout.findViewById(R.id.btnAdd).setOnClickListener(new View.OnClickListener() {
@@ -97,20 +115,25 @@ public class FilterItemFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(STATE_ITEMS, itemsId);
-        outState.putStringArrayList(STATE_SELECTED, selectedItems);
+        outState.putStringArrayList(STATE_SELECTED, getSelectedItems());
     }
 
 
     public ArrayList<String> getSelectedItems() {
         ArrayList<String> arr = new ArrayList<String>();
         String[] itemValues = getResources().getStringArray(R.array.sortValues);
-        if (selectedFilters.size()!=0) {
-            for (Spinner spin : selectedFilters) {
-                arr.add(itemValues[spin.getSelectedItemPosition()]);
-            }
+        if (spinnerLayout == null && selectedItems!=null) {
+            // Tab is not initialized so it's either
+            // not displayed yet
+            return selectedItems;
         } else {
-            arr.addAll(selectedItems);
+
         }
-        return arr;
+        selectedItems = new ArrayList<String>();
+        for (Spinner spin : selectedFilters) {
+           int i = spin.getSelectedItemPosition();
+            selectedItems.add(itemValues[i]);
+        }
+        return selectedItems;
     }
 }

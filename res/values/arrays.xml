@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with Tod
         <item>@string/by_prio</item>
         <item>@string/by_project</item>
         <item>@string/by_context</item>
+        <item>@string/completed_last</item>
     </string-array>
     <string-array name="sortValues">
         <item>sort_file_order</item>
@@ -39,5 +40,6 @@ You should have received a copy of the GNU General Public License along with Tod
         <item>sort_by_prio</item>
         <item>sort_by_project</item>
         <item>sort_by_context</item>
+        <item>sort_completed_last</item>
     </string-array>
 </resources>
