@@ -220,8 +220,6 @@ public class TodoTxtTouch extends ListActivity {
             if (sorts != null && !sorts.equals("")) {
                 m_sorts = new ArrayList<String>(Arrays.asList(sorts
                         .split("\n")));
-            } else {
-                m_sorts.addAll(m_app.getDefaultSort());
             }
         }  else {
             restoreFilter();
@@ -500,7 +498,6 @@ public class TodoTxtTouch extends ListActivity {
         m_prios = new ArrayList<Priority>();
         m_projects = new ArrayList<String>();
         m_sorts  = new ArrayList<String>();
-        m_sorts.addAll(m_app.getDefaultSort());
         m_priosNot = false;
         m_projectsNot = false;
         m_contextsNot = false;
