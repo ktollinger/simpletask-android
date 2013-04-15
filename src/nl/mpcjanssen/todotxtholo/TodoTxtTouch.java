@@ -948,6 +948,8 @@ public class TodoTxtTouch extends ListActivity implements
 							.findViewById(R.id.tasktext);
 					holder.taskage = (TextView) convertView
 							.findViewById(R.id.taskage);
+                    holder.tasknote = (TextView) convertView
+                            .findViewById(R.id.tasknote);
 
 					convertView.setTag(holder);
 				} else {
@@ -988,6 +990,12 @@ public class TodoTxtTouch extends ListActivity implements
 						holder.taskage.setText("");
 						holder.taskage.setVisibility(View.GONE);
 					}
+                    if (task.getNote()!=null) {
+                        holder.tasknote.setText(task.getNote());
+                        holder.tasknote.setVisibility(View.VISIBLE);
+                    }  else {
+                        holder.tasknote.setVisibility(View.GONE);
+                    }
 
 				}
 
@@ -1052,6 +1060,7 @@ public class TodoTxtTouch extends ListActivity implements
 		private TextView taskprio;
 		private TextView tasktext;
 		private TextView taskage;
+        private TextView tasknote;
 	}
 
 	public void storeKeys(String accessTokenKey, String accessTokenSecret) {

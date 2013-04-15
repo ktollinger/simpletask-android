@@ -121,6 +121,17 @@ public class Task implements Serializable, Comparable<Task> {
         return id;
     }
 
+    public String getNote() {
+       int start = originalText.indexOf("(");
+       int stop = originalText.indexOf(")");
+       if (start!=-1 && stop!=-1 && stop>start) {
+          String note =  originalText.subSequence(start+1,stop).toString();
+           return note;
+       } else {
+           return null;
+       }
+    }
+
     public void setPriority(Priority priority) {
         this.priority = priority;
     }
@@ -196,7 +207,9 @@ public class Task implements Serializable, Comparable<Task> {
             sb.append(COMPLETED).append(this.completionDate).append(" ");
         }
         sb.append(this.text);
-        return sb.toString();
+        String text = sb.toString();
+        text = text.replaceAll("\\(.*\\)","");
+        return text;
     }
 
     public String inFileFormat() {
