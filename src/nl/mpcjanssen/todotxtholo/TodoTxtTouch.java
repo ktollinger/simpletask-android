@@ -35,6 +35,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CalendarContract.Events;
 import android.text.SpannableString;
+import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -996,7 +997,8 @@ public class TodoTxtTouch extends ListActivity implements
                     }  else {
                         holder.tasknote.setVisibility(View.GONE);
                     }
-
+                    Linkify.addLinks(holder.tasknote, Linkify.ALL);
+                    Linkify.addLinks(holder.tasktext, Linkify.ALL);
 				}
 
 			}
