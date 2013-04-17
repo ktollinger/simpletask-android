@@ -28,6 +28,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,6 +36,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import nl.mpcjanssen.todotxtholo.task.Priority;
 import nl.mpcjanssen.todotxtholo.task.Task;
 import nl.mpcjanssen.todotxtholo.task.TaskBag;
@@ -57,6 +59,7 @@ public class AddTask extends Activity {
 
 
     private EditText textInputField;
+    private TextView textViewField;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -134,6 +137,23 @@ public class AddTask extends Activity {
 
         setContentView(R.layout.add_task);
 
+        // text
+        textInputField = (EditText) findViewById(R.id.taskText);
+        textViewField = (TextView) findViewById(R.id.taskView);
+
+        boolean view = intent.getBooleanExtra(Constants.EXTRA_VIEW, false);
+        Task task = (Task) getIntent().getSerializableExtra(
+                Constants.EXTRA_TASK);
+
+        if (view) {
+            textInputField.setVisibility(View.GONE);
+            textViewField.setVisibility(View.VISIBLE);
+            textViewField.setText(task.inFileFormat());
+            Linkify.addLinks(textViewField, Linkify.ALL);
+        }
+
+
+
         TodoApplication m_app = (TodoApplication) getApplication();
         taskBag = m_app.getTaskBag();
 
@@ -201,8 +221,7 @@ public class AddTask extends Activity {
             }
         });
 
-        // text
-        textInputField = (EditText) findViewById(R.id.taskText);
+
 
         if (share_text != null) {
             textInputField.setText(share_text);
@@ -211,8 +230,7 @@ public class AddTask extends Activity {
         Task iniTask = null;
         setTitle(R.string.task);
 
-        Task task = (Task) getIntent().getSerializableExtra(
-                Constants.EXTRA_TASK);
+
         if (task != null) {
             m_backup = taskBag.find(task);
             textInputField.setText(task.inFileFormat());

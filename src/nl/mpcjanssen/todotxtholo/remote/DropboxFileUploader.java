@@ -94,7 +94,7 @@ public class DropboxFileUploader {
 	private void loadMetadata(DropboxFile file) {
 		Log.d(TAG, "Loading metadata for " + file.getRemoteFile());
 		
-		DropboxAPI.Entry metadata = null;
+		DropboxAPI.Entry metadata;
 		try {
 			metadata = dropboxApi.metadata(file.getRemoteFile(), 1, null,
 					false, null);
@@ -160,7 +160,7 @@ public class DropboxFileUploader {
 					+ " not found", e1);
 		}
 
-		DropboxAPI.Entry metadata = null;
+		DropboxAPI.Entry metadata;
 
 		try {
 			metadata = dropboxApi.putFile(file.getRemoteFile(), inputStream,

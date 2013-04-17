@@ -52,9 +52,6 @@ public class Task implements Serializable, Comparable<Task> {
     private String relativeAge = "";
     private List<String> contexts;
     private List<String> projects;
-    private List<String> mailAddresses;
-    private List<URL> links;
-    private List<String> phoneNumbers;
 
     public Task(long id, String rawText, Date defaultPrependedDate) {
         this.id = id;
@@ -83,9 +80,6 @@ public class Task implements Serializable, Comparable<Task> {
 
         this.contexts = ContextParser.getInstance().parse(text);
         this.projects = ProjectParser.getInstance().parse(text);
-        this.mailAddresses = MailAddressParser.getInstance().parse(text);
-        this.links = LinkParser.getInstance().parse(text);
-        this.phoneNumbers = PhoneNumberParser.getInstance().parse(text);
         this.deleted = Strings.isEmptyOrNull(text);
 
         if (defaultPrependedDate != null
@@ -144,20 +138,8 @@ public class Task implements Serializable, Comparable<Task> {
         return contexts;
     }
 
-    public List<URL> getLinks() {
-        return links;
-    }
-
-    public List<String> getPhoneNumbers() {
-        return phoneNumbers;
-    }
-
     public List<String> getProjects() {
         return projects;
-    }
-
-    public List<String> getMailAddresses() {
-        return mailAddresses;
     }
 
     public String getPrependedDate() {
@@ -253,30 +235,7 @@ public class Task implements Serializable, Comparable<Task> {
 
     @Override
     public int hashCode() {
-
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (completed ? 1231 : 1237);
-        result = prime * result
-                + ((completionDate == null) ? 0 : completionDate.hashCode());
-        result = prime * result
-                + ((contexts == null) ? 0 : contexts.hashCode());
-        result = prime * result + (deleted ? 1231 : 1237);
-        result = prime * result + (int) (id ^ (id >>> 32));
-        result = prime * result + ((links == null) ? 0 : links.hashCode());
-        result = prime * result
-                + ((mailAddresses == null) ? 0 : mailAddresses.hashCode())
-                + ((phoneNumbers == null) ? 0 : phoneNumbers.hashCode());
-        result = prime * result
-                + ((prependedDate == null) ? 0 : prependedDate.hashCode());
-        result = prime * result
-                + ((priority == null) ? 0 : priority.hashCode());
-        result = prime * result
-                + ((projects == null) ? 0 : projects.hashCode());
-        result = prime * result
-                + ((relativeAge == null) ? 0 : relativeAge.hashCode());
-        result = prime * result + ((text == null) ? 0 : text.hashCode());
-        return result;
+        return originalText.hashCode();
     }
 
     public void initWithFilters(ArrayList<String> ctxts, ArrayList<String> pjs) {

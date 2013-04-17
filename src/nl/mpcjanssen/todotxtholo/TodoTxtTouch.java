@@ -35,7 +35,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CalendarContract.Events;
 import android.text.SpannableString;
-import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -381,11 +380,6 @@ public class TodoTxtTouch extends ListActivity implements
 		return super.onCreateOptionsMenu(menu);
 	}
 
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// start the action bar instead
-		l.setItemChecked(position, true);
-	}
 
 	private Task getTaskAt(final int pos) {
 		Task task = m_adapter.getItem(pos);
@@ -468,6 +462,14 @@ public class TodoTxtTouch extends ListActivity implements
 		m_adapter.setFilteredTasks(true);
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 	}
+
+    private void viewTask(Task task) {
+        Intent intent = new Intent(this, AddTask.class);
+        intent.putExtra(Constants.EXTRA_TASK, task);
+        intent.putExtra(Constants.EXTRA_VIEW, true);
+        startActivity(intent);
+    }
+
 
 	private void editTask(Task task) {
 		Intent intent = new Intent(this, AddTask.class);
@@ -887,13 +889,11 @@ public class TodoTxtTouch extends ListActivity implements
 		@Override
 		public void registerDataSetObserver(DataSetObserver observer) {
 			obs.add(observer);
-			return;
 		}
 
 		@Override
 		public void unregisterDataSetObserver(DataSetObserver observer) {
 			obs.remove(observer);
-			return;
 		}
 
 		@Override
@@ -932,6 +932,7 @@ public class TodoTxtTouch extends ListActivity implements
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
+
 			if (headerAtPostion.get(position) != null) {
 				convertView = m_inflater.inflate(R.layout.list_header, null);
 				TextView t = (TextView) convertView
@@ -940,6 +941,7 @@ public class TodoTxtTouch extends ListActivity implements
 
 			} else {
 				final ViewHolder holder;
+
 				if (convertView == null) {
 					convertView = m_inflater.inflate(R.layout.list_item, null);
 					holder = new ViewHolder();
@@ -951,7 +953,6 @@ public class TodoTxtTouch extends ListActivity implements
 							.findViewById(R.id.taskage);
                     holder.tasknote = (TextView) convertView
                             .findViewById(R.id.tasknote);
-
 					convertView.setTag(holder);
 				} else {
 					holder = (ViewHolder) convertView.getTag();
@@ -997,10 +998,7 @@ public class TodoTxtTouch extends ListActivity implements
                     }  else {
                         holder.tasknote.setVisibility(View.GONE);
                     }
-                    Linkify.addLinks(holder.tasknote, Linkify.ALL);
-                    Linkify.addLinks(holder.tasktext, Linkify.ALL);
 				}
-
 			}
 			return convertView;
 		}
@@ -1063,7 +1061,7 @@ public class TodoTxtTouch extends ListActivity implements
 		private TextView tasktext;
 		private TextView taskage;
         private TextView tasknote;
-	}
+    }
 
 	public void storeKeys(String accessTokenKey, String accessTokenSecret) {
 		Editor editor = m_app.m_prefs.edit();
@@ -1098,7 +1096,15 @@ public class TodoTxtTouch extends ListActivity implements
 		startActivity(i);
 	}
 
-	class ActionBarListener implements AbsListView.MultiChoiceModeListener {
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        //super.onListItemClick(l, v, position, id);
+        Task task = m_adapter.getItem(position);
+        viewTask(task);
+
+    }
+
+    class ActionBarListener implements AbsListView.MultiChoiceModeListener {
 
 		@Override
 		public void onItemCheckedStateChanged(ActionMode mode, int position,
@@ -1128,22 +1134,9 @@ public class TodoTxtTouch extends ListActivity implements
 			title = title + " " + getString(R.string.selected);
 			mode.setTitle(title);
 			if (numSelected == 1) {
-				Task task = checkedTasks.get(0);
 				menu.findItem(R.id.update).setVisible(true);
-				for (URL url : task.getLinks()) {
-					menu.add(Menu.CATEGORY_SECONDARY, R.id.url, Menu.NONE,
-							url.toString());
-				}
-				for (String s1 : task.getMailAddresses()) {
-					menu.add(Menu.CATEGORY_SECONDARY, R.id.mail, Menu.NONE, s1);
-				}
-				for (String s : task.getPhoneNumbers()) {
-					menu.add(Menu.CATEGORY_SECONDARY, R.id.phone_number,
-							Menu.NONE, s);
-				}
 			} else {
 				menu.findItem(R.id.update).setVisible(false);
-				menu.removeGroup(Menu.CATEGORY_SECONDARY);
 			}
 		}
 
@@ -1200,27 +1193,6 @@ public class TodoTxtTouch extends ListActivity implements
 						.putExtra(Events.DESCRIPTION, calendarDescription);
 				startActivity(intent);
 				break;
-			case R.id.url:
-				Log.v(TAG, "url: " + item.getTitle().toString());
-				intent = new Intent(Intent.ACTION_VIEW, Uri.parse(item
-						.getTitle().toString()));
-				startActivity(intent);
-				break;
-			case R.id.mail:
-				Log.v(TAG, "mail: " + item.getTitle().toString());
-				intent = new Intent(Intent.ACTION_SEND, Uri.parse(item
-						.getTitle().toString()));
-				intent.putExtra(android.content.Intent.EXTRA_EMAIL,
-						new String[] { item.getTitle().toString() });
-				intent.setType("text/plain");
-				startActivity(intent);
-				break;
-			case R.id.phone_number:
-				Log.v(TAG, "phone_number");
-				intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:"
-						+ item.getTitle().toString()));
-				startActivity(intent);
-				break;
 			}
 			// Not sure why this is explicitly needed
 			mode.finish();
@@ -1241,7 +1213,7 @@ public class TodoTxtTouch extends ListActivity implements
 			SparseBooleanArray checkedItems = getListView()
 					.getCheckedItemPositions();
 			for (int i = 0; i < checkedItems.size(); i++) {
-				if (checkedItems.valueAt(i) == true) {
+				if (checkedItems.valueAt(i)) {
 					checkedTasks.add(getTaskAt(checkedItems.keyAt(i)));
 				}
 			}
@@ -1251,7 +1223,6 @@ public class TodoTxtTouch extends ListActivity implements
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
 			m_adapter.setFilteredTasks(false);
-			return;
 		}
 	}
 

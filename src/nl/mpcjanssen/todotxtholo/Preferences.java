@@ -129,7 +129,6 @@ public class Preferences extends PreferenceActivity {
 			addPreferencesFromResource(R.xml.about_preferences);
 			PreferenceActivity act = (PreferenceActivity) getActivity();
 			PackageInfo packageInfo;
-			String git_version;
 			final Preference versionPref = findPreference("app_version");
 			try {
 				packageInfo = act.getPackageManager().getPackageInfo(act.getPackageName(),
