@@ -33,6 +33,8 @@ import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.simpletask.R;
 
+import java.io.File;
+
 
 public class MainApplication extends Application {
     private final static String TAG = MainApplication.class.getSimpleName();
@@ -50,9 +52,12 @@ public class MainApplication extends Application {
         super.onCreate();
         MainApplication.appContext = getApplicationContext();
         m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    }
+
+    public void initializeRepository (String todoFile) {
         TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
                 m_prefs);
-        LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
+        LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(todoFile, taskBagPreferences);
         m_observer = new FileObserver(localTaskRepository.get_todo_file().getParent(),
         				FileObserver.ALL_EVENTS) {
 
@@ -82,6 +87,16 @@ public class MainApplication extends Application {
 
     public boolean isAutoArchive() {
         return m_prefs.getBoolean(getString(R.string.auto_archive_pref_key), false);
+    }
+
+    public String todoFile() {
+        return  m_prefs.getString(getString(R.string.todo_file_pref_key), null);
+    }
+
+    public void setTodoFile(String todoFile) {
+        SharedPreferences.Editor ed = m_prefs.edit();
+        ed.putString(getString(R.string.todo_file_pref_key),todoFile);
+        ed.commit();
     }
 
     public int fontSizeDelta() {
@@ -152,4 +167,6 @@ public class MainApplication extends Application {
     public boolean completedLast() {
         return m_prefs.getBoolean(getString(R.string.sort_complete_last_pref_key), true);
     }
+
+
 }

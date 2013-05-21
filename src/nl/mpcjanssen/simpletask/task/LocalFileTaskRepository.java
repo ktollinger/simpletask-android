@@ -43,36 +43,26 @@ public class LocalFileTaskRepository {
 	private static final String TAG = LocalFileTaskRepository.class
 			.getSimpleName();
     private FileObserver mFileObserver;
-    File TODO_TXT_FILE;
+    private File todo_file = null;
 	
 	public File get_todo_file() {
-		return TODO_TXT_FILE;
+		return todo_file;
 	}
 
-	File DONE_TXT_FILE;
 	private final TaskBag.Preferences preferences;
 
     public void setFileObserver (FileObserver observer) {
         this.mFileObserver = observer;
     }
 
-	public LocalFileTaskRepository(TaskBag.Preferences m_prefs) {
+	public LocalFileTaskRepository(String filename , TaskBag.Preferences m_prefs) {
 		this.preferences = m_prefs;
         this.mFileObserver = null;
-		TODO_TXT_FILE = new File(
-				Environment.getExternalStorageDirectory(),
-				"data/nl.mpcjanssen.simpletask/todo.txt");
-		DONE_TXT_FILE = new File(
-				Environment.getExternalStorageDirectory(),
-				"data/nl.mpcjanssen.simpletask/todo.txt");
+		todo_file = new File(filename);
 		try {
-			if (!TODO_TXT_FILE.exists()) {
-				Util.createParentDirectory(TODO_TXT_FILE);
-				TODO_TXT_FILE.createNewFile();
-			}
-			if (!DONE_TXT_FILE.exists()) {
-				Util.createParentDirectory(DONE_TXT_FILE);
-				DONE_TXT_FILE.createNewFile();
+			if (!todo_file.exists()) {
+				Util.createParentDirectory(todo_file);
+				todo_file.createNewFile();
 			}
 		} catch (IOException e) {
 			Log.e (TAG, "Error initializing LocalFile " + e);
@@ -81,13 +71,13 @@ public class LocalFileTaskRepository {
 	}
 
 	public ArrayList<Task> load() {
-		if (!TODO_TXT_FILE.exists()) {
-			Log.e(TAG, TODO_TXT_FILE.getAbsolutePath() + " does not exist!");
+		if (!todo_file.exists()) {
+            Util.showToastLong(null, todo_file.getAbsolutePath() + " does not exist!");
 		} else {
 			try {
-				return TaskIo.loadTasksFromFile(TODO_TXT_FILE);
+				return TaskIo.loadTasksFromFile(todo_file);
 			} catch (IOException e) {
-				Log.e(TAG, "Error loading from local file" + e);
+				Util.showToastLong(null, "Error loading from local file" + e);
 			}			
 		}
 		return null;
@@ -96,36 +86,13 @@ public class LocalFileTaskRepository {
 	public void store(ArrayList<Task> tasks) {
         if (mFileObserver!=null) {
             mFileObserver.stopWatching();
-            Log.v(TAG, "Stop watching " + TODO_TXT_FILE + " when storing taskbag");
+            Log.v(TAG, "Stop watching " + todo_file + " when storing taskbag");
         }
-		TaskIo.writeToFile(tasks, TODO_TXT_FILE,
+		TaskIo.writeToFile(tasks, todo_file,
 				preferences.isUseWindowsLineBreaksEnabled());
         if (mFileObserver!=null) {
-            Log.v(TAG, "Start watching " + TODO_TXT_FILE + " storing taskbag done");
+            Log.v(TAG, "Start watching " + todo_file + " storing taskbag done");
             mFileObserver.startWatching();
         }
-	}
-
-	public void archive(ArrayList<Task> tasks) {
-		boolean windowsLineBreaks = preferences.isUseWindowsLineBreaksEnabled();
-
-		ArrayList<Task> completedTasks = new ArrayList<Task>(tasks.size());
-		ArrayList<Task> incompleteTasks = new ArrayList<Task>(tasks.size());
-
-		for (Task task : tasks) {
-			if (task.isCompleted()) {
-				completedTasks.add(task);
-			} else {
-				incompleteTasks.add(task);
-			}
-		}
-
-		// append completed tasks to done.txt
-		TaskIo.writeToFile(completedTasks, DONE_TXT_FILE, true,
-				windowsLineBreaks);
-
-		// write incomplete tasks back to todo.txt
-		TaskIo.writeToFile(incompleteTasks, TODO_TXT_FILE, false,
-				windowsLineBreaks);
 	}
 }

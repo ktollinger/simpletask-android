@@ -57,11 +57,6 @@ public class TaskBag {
         store(this.tasks);
     }
 
-    public void archive() {
-        localRepository.archive(tasks);
-        reload();
-    }
-
     public void reload() {
         this.tasks = localRepository.load();
     }

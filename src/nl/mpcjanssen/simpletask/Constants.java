@@ -62,4 +62,8 @@ public class Constants {
     public static final String FILTER_ITEMS = "items";
     public static final String INITIAL_SELECTED_ITEMS = "initialSelectedItems";
     public static final String INITIAL_NOT = "initialNot";
+
+
+    // Constants for activityforresult
+    public static final int SELECT_FILE = 1 ;
 }

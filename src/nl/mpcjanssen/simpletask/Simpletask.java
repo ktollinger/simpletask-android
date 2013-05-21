@@ -33,6 +33,7 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.CalendarContract.Events;
 import android.text.SpannableString;
 import android.util.AttributeSet;
@@ -43,10 +44,12 @@ import android.view.*;
 import android.widget.*;
 import nl.mpcjanssen.simpletask.sort.*;
 import nl.mpcjanssen.simpletask.task.*;
+import nl.mpcjanssen.simpletask.util.FileDialog;
 import nl.mpcjanssen.simpletask.util.Strings;
 import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.simpletask.R;
 
+import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.*;
@@ -116,7 +119,6 @@ public class Simpletask extends ListActivity {
                     // archive
                     // refresh screen to remove completed tasks
                     // push to remote
-                    archiveTasks();
                 } else if (intent.getAction().equalsIgnoreCase(
                         Constants.INTENT_UPDATE_UI)) {
                     m_adapter.setFilteredTasks();
@@ -125,8 +127,32 @@ public class Simpletask extends ListActivity {
             }
         };
         registerReceiver(m_broadcastReceiver, intentFilter);
+        if (m_app.todoFile() == null) {
+            loadTodoFile();
+        } else {
+            m_app.initializeRepository(m_app.todoFile());
+            handleIntent(savedInstanceState);
+        }
 
-        handleIntent(savedInstanceState);
+    }
+
+    private void loadTodoFile() {
+        File mPath = null;
+        if (m_app.todoFile()==null) {
+            mPath = Environment.getExternalStorageDirectory();
+        } else {
+            mPath = new File(m_app.todoFile()).getParentFile();
+        }
+        FileDialog fileDialog = new FileDialog(this, mPath);
+        fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
+            public void fileSelected(File file) {
+                Log.d(getClass().getName(), "selected file " + file.toString());
+                m_app.setTodoFile(file.toString());
+                m_app.initializeRepository(m_app.todoFile());
+                handleIntent(null);
+            }
+        });
+        fileDialog.showDialog();
     }
 
     private void handleIntent(Bundle savedInstanceState) {
@@ -196,7 +222,6 @@ public class Simpletask extends ListActivity {
 
         }
         // Initialize Adapter
-
         m_adapter = new TaskAdapter(this, R.layout.list_item,
                 getLayoutInflater(), getListView());
         m_adapter.setFilteredTasks();
@@ -268,7 +293,9 @@ public class Simpletask extends ListActivity {
     protected void onResume() {
         super.onResume();
         Log.v(TAG, "onResume: " + getIntent().getExtras());
-        m_adapter.setFilteredTasks();
+        if (m_adapter!=null) {
+            m_adapter.setFilteredTasks();
+        }
     }
     
     @Override
@@ -392,9 +419,6 @@ public class Simpletask extends ListActivity {
                 t.markComplete(new Date());
             }
         }
-        if (m_app.isAutoArchive()) {
-            taskBag.archive();
-        }
         taskBag.store();
         m_app.updateWidgets();
         // We have change the data, views should refresh
@@ -430,34 +454,6 @@ public class Simpletask extends ListActivity {
 		startActivity(intent);
 	}
 
-    private void archiveTasks() {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @Override
-            protected Boolean doInBackground(Void... params) {
-                try {
-                    taskBag.archive();
-                    return true;
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage(), e);
-                    return false;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Boolean result) {
-                if (result) {
-                    Util.showToastLong(Simpletask.this,
-                            "Archived completed tasks");
-                    sendBroadcast(new Intent(
-                            Constants.INTENT_UPDATE_UI));
-                } else {
-                    Util.showToastLong(Simpletask.this,
-                            "Could not archive tasks");
-                }
-            }
-        }.execute();
-    }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
@@ -479,6 +475,9 @@ public class Simpletask extends ListActivity {
                 break;
             case R.id.quickfilter:
                 quickFilter();
+                break;
+            case R.id.loadtodofile:
+                loadTodoFile();
                 break;
             default:
                 return super.onMenuItemSelected(featureId, item);
@@ -614,7 +613,10 @@ public class Simpletask extends ListActivity {
 
         void setFilteredTasks() {
             Log.v(TAG, "setFilteredTasks called");
-
+            if (m_app.todoFile()!=null) {
+                String fileName = new File(m_app.todoFile()).getName();
+                setTitle(fileName);
+            }
             AndFilter filter = new AndFilter();
             visibleTasks.clear();
             for (Task t : taskBag.getTasks()) {
