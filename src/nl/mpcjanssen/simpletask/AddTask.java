@@ -41,8 +41,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
-
-
 public class AddTask extends Activity {
 
     private final static String TAG = AddTask.class.getSimpleName();
@@ -50,12 +48,8 @@ public class AddTask extends Activity {
     private ProgressDialog m_ProgressDialog = null;
 
     private Task m_backup;
-
     private TaskBag taskBag;
-
     private String share_text;
-
-
     private EditText textInputField;
 
     @Override
@@ -86,7 +80,6 @@ public class AddTask extends Activity {
                     taskBag.addAsTask(taskText);
                 }
                 MainApplication m_app = (MainApplication) getApplication();
-                m_app.updateWidgets();
                 taskBag.store();
                 finish();
                 break;

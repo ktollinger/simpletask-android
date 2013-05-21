@@ -138,6 +138,7 @@ public class Simpletask extends ListActivity {
 
     private void loadTodoFile() {
         File mPath = null;
+
         if (m_app.todoFile()==null) {
             mPath = Environment.getExternalStorageDirectory();
         } else {
@@ -404,7 +405,6 @@ public class Simpletask extends ListActivity {
                     }
                 }
                 taskBag.store();
-                m_app.updateWidgets();
                 // We have change the data, views should refresh
                 m_adapter.setFilteredTasks();
             }
@@ -420,7 +420,6 @@ public class Simpletask extends ListActivity {
             }
         }
         taskBag.store();
-        m_app.updateWidgets();
         // We have change the data, views should refresh
         m_adapter.setFilteredTasks();
     }
@@ -432,7 +431,6 @@ public class Simpletask extends ListActivity {
             }
         }
         taskBag.store();
-        m_app.updateWidgets();
         // We have change the data, views should refresh
         m_adapter.setFilteredTasks();
     }
@@ -445,7 +443,6 @@ public class Simpletask extends ListActivity {
         }
         taskBag.store();
         m_adapter.setFilteredTasks();
-        m_app.updateWidgets();
     }
     
 	private void editTask(Task task) {

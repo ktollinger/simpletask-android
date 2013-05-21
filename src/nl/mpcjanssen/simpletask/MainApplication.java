@@ -153,15 +153,6 @@ public class MainApplication extends Application {
      */
     public void updateUI() {
         sendBroadcast(new Intent(Constants.INTENT_UPDATE_UI));
-        updateWidgets();
-    }
-
-    public void updateWidgets() {
-        AppWidgetManager mgr = AppWidgetManager.getInstance(getApplicationContext());
-        for (int appWidgetId : mgr.getAppWidgetIds(new ComponentName(getApplicationContext(), MyAppWidgetProvider.class))) {
-            mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetlv);
-            Log.v(TAG, "Updating widget: " + appWidgetId);
-        }
     }
 
     public boolean completedLast() {

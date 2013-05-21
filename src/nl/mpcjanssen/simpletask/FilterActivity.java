@@ -47,16 +47,12 @@ public class FilterActivity extends Activity {
         actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         TaskBag taskBag = ((MainApplication)getApplication()).getTaskBag();
-        if (getIntent().getAction()!=null) {
-        	asWidgetConfigure = getIntent().getAction().equals(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-        }
+
         // Fill arguments for fragment
         arguments = new Bundle();        
-        if(asWidgetConfigure) { 
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, taskBag.getContexts(true));        	
-        } else {
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_CONTEXTS));
-        }
+
+        arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_CONTEXTS));
+
         arguments.putStringArrayList(Constants.INITIAL_SELECTED_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_CONTEXTS_SELECTED));
         arguments.putBoolean(Constants.INITIAL_NOT, getIntent().getBooleanExtra(Constants.EXTRA_CONTEXTS + "not", false));
         actionbar.addTab(actionbar.newTab()
@@ -66,11 +62,8 @@ public class FilterActivity extends Activity {
 
         // Fill arguments for fragment
         arguments = new Bundle();
-        if(asWidgetConfigure) { 
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, taskBag.getProjects(true));        	
-        } else {
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PROJECTS));
-        }
+        arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PROJECTS));
+
         arguments.putStringArrayList(Constants.INITIAL_SELECTED_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PROJECTS_SELECTED));
         arguments.putBoolean(Constants.INITIAL_NOT, getIntent().getBooleanExtra(Constants.EXTRA_PROJECTS + "not", false));
         actionbar.addTab(actionbar.newTab()
@@ -80,11 +73,9 @@ public class FilterActivity extends Activity {
 
         // Fill arguments for fragment
         arguments = new Bundle();
-        if(asWidgetConfigure) { 
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, Priority.inCode(taskBag.getPriorities()));        	
-        } else {
-        	arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PRIORITIES));
-        }
+
+        arguments.putStringArrayList(Constants.FILTER_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PRIORITIES));
+
         arguments.putStringArrayList(Constants.INITIAL_SELECTED_ITEMS, getIntent().getStringArrayListExtra(Constants.EXTRA_PRIORITIES_SELECTED));
         arguments.putBoolean(Constants.INITIAL_NOT, getIntent().getBooleanExtra(Constants.EXTRA_PRIORITIES + "not", false));
         actionbar.addTab(actionbar.newTab()
@@ -118,11 +109,7 @@ public class FilterActivity extends Activity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_apply_filter:
-            	if (asWidgetConfigure) {
-            		askWidgetName();
-            	} else {
-            		applyFilter();
-            	}
+            	applyFilter();
                 break;
             case R.id.menu_select_all:
                 selectAll();
@@ -237,96 +224,9 @@ public class FilterActivity extends Activity {
         return not;
     }
 
-    
-    private void createWidget(String name) {
-    	int mAppWidgetId;
-
-    	Intent intent = getIntent();
-    	Bundle extras = intent.getExtras();
-    	if (extras != null) {
-    		mAppWidgetId = extras.getInt(
-    				AppWidgetManager.EXTRA_APPWIDGET_ID, 
-    				AppWidgetManager.INVALID_APPWIDGET_ID);
-
-    		// Store widget filter
-    		SharedPreferences preferences = getApplicationContext().getSharedPreferences("" + mAppWidgetId, MODE_PRIVATE);
-    		Editor editor = preferences.edit();
-            editor.putString(Constants.INTENT_TITLE, name);
-    		editor.putStringSet(Constants.INTENT_CONTEXTS_FILTER_v1, new HashSet<String>(getFilter(Constants.EXTRA_CONTEXTS)));
-    		editor.putBoolean(Constants.INTENT_CONTEXTS_FILTER_NOT_v1, getNot(Constants.EXTRA_CONTEXTS));
-    		editor.putStringSet(Constants.INTENT_PROJECTS_FILTER_v1, new HashSet<String>(getFilter(Constants.EXTRA_PROJECTS)));
-    		editor.putBoolean(Constants.INTENT_PROJECTS_FILTER_NOT_v1, getNot(Constants.EXTRA_PROJECTS));
-    		editor.putStringSet(Constants.INTENT_PRIORITIES_FILTER_v1, new HashSet<String>(getFilter(Constants.EXTRA_PRIORITIES)));
-    		editor.putBoolean(Constants.INTENT_PRIORITIES_FILTER_NOT_v1, getNot(Constants.EXTRA_PRIORITIES));
-    		editor.putInt(Constants.INTENT_ACTIVE_SORT_v1, getSelectedItem(getString(R.string.sort),Constants.SORT_UNSORTED));
-    		editor.commit();
-
-            // onUpdate is not called on adding, launch it manually
-            Context context = FilterActivity.this;
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            MyAppWidgetProvider.updateAppWidget(context, appWidgetManager,
-                    mAppWidgetId, name);
-
-    		Intent resultValue = new Intent(getApplicationContext(), AppWidgetService.class);
-    		resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
-            resultValue.putExtra(Constants.INTENT_TITLE, name);
-    		setResult(RESULT_OK, resultValue);
-    		finish();
-    	}
-    }
-
 	private void applyFilter() {
    		Intent data = createFilterIntent();
    		startActivity(data);
-    }
-
-    private void askWidgetName() {
-        String name;
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-        alert.setTitle("Create widget");
-        alert.setMessage("Widget title");
-
-        ArrayList<String> appliedFilters = new ArrayList<String>();
-        ArrayList<String> contextFilter = getFilter(Constants.EXTRA_CONTEXTS);
-        ArrayList<String> projectsFilter = getFilter(Constants.EXTRA_PROJECTS);
-        ArrayList<String> prioritiesFilter = getFilter(Constants.EXTRA_PRIORITIES);
-        appliedFilters.addAll(contextFilter);
-        appliedFilters.addAll(prioritiesFilter);
-        appliedFilters.addAll(projectsFilter);
-        if (appliedFilters.size() == 1) {
-            name = appliedFilters.get(0);
-        } else {
-            name = "";
-        }
-
-// Set an EditText view to get user input
-        final EditText input = new EditText(this);
-        alert.setView(input);
-        input.setText(name);
-
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            @Override
-			public void onClick(DialogInterface dialog, int whichButton) {
-                String value = input.getText().toString();
-                if (value.equals("")) {
-                    Util.showToastShort(getApplicationContext(), R.string.shortcut_name_empty);
-                } else {
-                    createWidget(value);
-                }
-            }
-        }
-        );
-
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-			public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
-            }
-        });
-
-        alert.show();
-
     }
 
 
