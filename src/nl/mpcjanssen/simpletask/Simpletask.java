@@ -42,6 +42,7 @@ import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.*;
 import nl.mpcjanssen.simpletask.util.Strings;
 import nl.mpcjanssen.simpletask.util.Util;
+import nl.mpcjanssen.simpletaskdonate.R;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -123,7 +124,7 @@ public class Simpletask extends ListActivity  {
         taskBag = m_app.getTaskBag();
 
         // Show search or filter results
-        clearFilter();
+        clearFilter(false);
 
         Intent intent = getIntent();
         if (savedInstanceState != null) {
@@ -243,7 +244,7 @@ public class Simpletask extends ListActivity  {
         final ImageButton actionbar_clear = (ImageButton) findViewById(R.id.actionbar_clear);
         final TextView filterText = (TextView) findViewById(R.id.filter_text);
         if (m_contexts.size() + m_projects.size() + m_prios.size() > 0
-                || m_search != null) {
+                || !Strings.isEmptyOrNull(m_search)) {
             String filterTitle = getString(R.string.title_filter_applied);
             if (m_prios.size() > 0) {
                 filterTitle += " " + getString(R.string.priority_prompt);
@@ -256,7 +257,7 @@ public class Simpletask extends ListActivity  {
             if (m_contexts.size() > 0) {
                 filterTitle += " " + getString(R.string.context_prompt);
             }
-            if (m_search != null) {
+            if (!Strings.isEmptyOrNull(m_search)) {
                 filterTitle += " " + getString(R.string.search);
             }
 
@@ -494,7 +495,7 @@ public class Simpletask extends ListActivity  {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int which) {
-                        clearFilter();
+                        clearFilter(true);
                         m_contexts.add(contexts.get(which));
                         m_adapter.setFilteredTasks(false);
                     }
@@ -531,7 +532,7 @@ public class Simpletask extends ListActivity  {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             finish();
         } else { // otherwise just clear the filter in the current activity
-            clearFilter();
+            clearFilter(true);
             m_adapter.setFilteredTasks(false);
         }
     }
@@ -547,7 +548,15 @@ public class Simpletask extends ListActivity  {
         //handleIntent(null);
     }
 
-    void clearFilter() {
+    void clearFilter(boolean clearIntent) {
+
+        if (clearIntent) {
+            // Also clear the intent so we wont get the old filter after
+            // switching back to app later fixes [1c5271ee2e]
+            Intent intent = new Intent();
+            intent.putExtra(Constants.INTENT_SORT_ORDER, Util.join(m_sorts, "\n"));
+            setIntent(intent);
+        }
         m_prios = new ArrayList<Priority>();
         m_contexts = new ArrayList<String>();
         m_projects = new ArrayList<String>();
@@ -841,6 +850,12 @@ public class Simpletask extends ListActivity  {
         public void select(Task selectedTask) {
             int index = visibleTasks.indexOf(selectedTask);
             Log.v(TAG, "Selected task found at: " + index);
+            if (index == -1) {
+                Log.w(TAG, "Selected task not found");
+                return;
+            } else {
+                Log.v(TAG, "Selected task found at: " + index);
+            }
             int position = indexToPosition.get(index).intValue();
             ListView lv = getListView();
             lv.setItemChecked(position,true);
