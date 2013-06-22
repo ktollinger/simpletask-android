@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 import com.mobeta.android.dslv.DragSortListView;
 import nl.mpcjanssen.simpletask.util.Strings;
-import nl.mpcjanssen.simpletaskdonate.R;
+import nl.mpcjanssen.simpletask.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

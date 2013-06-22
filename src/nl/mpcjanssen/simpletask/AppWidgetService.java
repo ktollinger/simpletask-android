@@ -10,7 +10,6 @@ import android.widget.RemoteViewsService;
 import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.*;
 import nl.mpcjanssen.simpletask.util.Util;
-import nl.mpcjanssen.simpletaskdonate.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

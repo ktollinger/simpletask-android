@@ -11,7 +11,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import nl.mpcjanssen.simpletask.task.Priority;
 import nl.mpcjanssen.simpletask.util.Util;
-import nl.mpcjanssen.simpletaskdonate.R;
+import nl.mpcjanssen.simpletask.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

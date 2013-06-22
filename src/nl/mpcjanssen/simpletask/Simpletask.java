@@ -42,7 +42,7 @@ import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.*;
 import nl.mpcjanssen.simpletask.util.Strings;
 import nl.mpcjanssen.simpletask.util.Util;
-import nl.mpcjanssen.simpletaskdonate.R;
+import nl.mpcjanssen.simpletask.R;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;

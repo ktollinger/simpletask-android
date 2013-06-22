@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with Sim
 -->
 <!-- suppress ALL -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="nl.mpcjanssen.simpletaskdonate"
+    package="nl.mpcjanssen.simpletask"
     android:versionCode="3"
     android:versionName="3.0.2" >
 
