@@ -32,6 +32,7 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract.Events;
+import android.support.v4.widget.DrawerLayout;
 import android.text.SpannableString;
 import android.util.Log;
 import android.util.SparseArray;
@@ -80,6 +81,9 @@ public class Simpletask extends ListActivity  {
 
     private ActionMode actionMode;
     private Task m_selectedTask;
+    private ArrayList<String> m_lists;
+    private ListView m_drawerList;
+    private DrawerLayout m_drawerLayout;
 
 
     @Override
@@ -122,6 +126,16 @@ public class Simpletask extends ListActivity  {
         setContentView(R.layout.main);
 
         taskBag = m_app.getTaskBag();
+
+        m_lists = taskBag.getContexts(true);
+        m_drawerList = (ListView) findViewById(R.id.left_drawer);
+        m_drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        // Set the adapter for the list view
+        m_drawerList.setAdapter(new ArrayAdapter<String>(this,
+                R.layout.drawer_list_item, m_lists));
+        // Set the list's click listener
+        m_drawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         // Show search or filter results
         clearFilter(false);
@@ -475,9 +489,6 @@ public class Simpletask extends ListActivity  {
             case R.id.share:
                 shareTodoList();
                 break;
-            case R.id.quickfilter:
-                changeList();
-                break;
             case R.id.archive:
                 taskBag.archive();
                 m_adapter.setFilteredTasks(true);
@@ -488,23 +499,10 @@ public class Simpletask extends ListActivity  {
         return true;
     }
 
-    private void changeList() {
-        final ArrayList<String> contexts = taskBag.getContexts(false);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setItems(contexts.toArray(new String[0]),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface arg0, int which) {
-                        clearFilter(true);
-                        m_contexts.add(contexts.get(which));
-                        m_adapter.setFilteredTasks(false);
-                    }
-                });
-
-        // Create the AlertDialog
-        AlertDialog dialog = builder.create();
-        dialog.setTitle(R.string.context_prompt);
-        dialog.show();
+    private void changeList(String listName) {
+                 clearFilter(true);
+                 m_contexts.add(listName);
+                 m_adapter.setFilteredTasks(false);
     }
 
     private void startAddTaskActivity(Task task) {
@@ -1098,6 +1096,18 @@ public class Simpletask extends ListActivity  {
                 }
             }
             return true;
+        }
+    }
+
+    private class DrawerItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            TextView tv = (TextView)view;
+            String listName = tv.getText().toString();
+            Log.v(TAG, "Clicked on drawer " + listName);
+            m_drawerList.setItemChecked(position, true);
+            changeList(listName);
+            m_drawerLayout.closeDrawer(m_drawerList);
         }
     }
 }
