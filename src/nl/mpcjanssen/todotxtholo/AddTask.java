@@ -22,7 +22,6 @@
  */
 package nl.mpcjanssen.todotxtholo;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -33,10 +32,11 @@ import android.os.Parcelable;
 import android.text.Layout;
 import android.text.Selection;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import nl.mpcjanssen.todotxtholo.task.Priority;
 import nl.mpcjanssen.todotxtholo.task.Task;
 import nl.mpcjanssen.todotxtholo.task.TaskBag;
@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class AddTask extends Activity {
+public class AddTask extends SherlockActivity {
 
     private final static String TAG = AddTask.class.getSimpleName();
 
@@ -64,7 +64,7 @@ public class AddTask extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.add_task, menu);
+        getSupportMenuInflater().inflate(R.menu.add_task, menu);
         return true;
     }
 

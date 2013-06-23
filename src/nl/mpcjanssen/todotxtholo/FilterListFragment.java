@@ -1,17 +1,17 @@
 package nl.mpcjanssen.todotxtholo;
 
 import android.app.ActionBar;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnTouchListener;
 import android.widget.*;
+import com.actionbarsherlock.app.SherlockFragment;
 
 import java.util.ArrayList;
 
-public class FilterListFragment extends Fragment {
+public class FilterListFragment extends SherlockFragment {
 
     final static String TAG = FilterListFragment.class.getSimpleName();
     private ListView lv;

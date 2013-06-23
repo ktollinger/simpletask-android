@@ -1,7 +1,6 @@
 package nl.mpcjanssen.todotxtholo;
 
 import android.app.ActionBar;
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.GestureDetector;
@@ -9,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import com.actionbarsherlock.app.SherlockFragment;
 import com.mobeta.android.dslv.DragSortListView;
 import nl.mpcjanssen.todotxtholo.util.Strings;
 
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FilterSortFragment extends Fragment {
+public class FilterSortFragment extends SherlockFragment {
     private final static String TAG = TodoTxtTouch.class.getSimpleName();
     private final static String STATE_ITEMS = "items";
     private final static String STATE_SELECTED = "selectedItem";

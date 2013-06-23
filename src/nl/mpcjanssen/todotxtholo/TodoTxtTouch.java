@@ -22,7 +22,10 @@
  */
 package nl.mpcjanssen.todotxtholo;
 
-import android.app.*;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.*;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
@@ -45,6 +48,7 @@ import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.view.*;
 import android.widget.*;
+import com.actionbarsherlock.app.SherlockListActivity;
 import nl.mpcjanssen.todotxtholo.remote.RemoteClient;
 import nl.mpcjanssen.todotxtholo.sort.MultiComparator;
 import nl.mpcjanssen.todotxtholo.task.*;
@@ -56,7 +60,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class TodoTxtTouch extends ListActivity implements
+public class TodoTxtTouch extends SherlockListActivity implements
         OnSharedPreferenceChangeListener {
 
     final static String TAG = TodoTxtTouch.class.getSimpleName();
@@ -67,7 +71,7 @@ public class TodoTxtTouch extends ListActivity implements
     ProgressDialog m_ProgressDialog = null;
     String m_DialogText = "";
     Boolean m_DialogActive = false;
-    Menu options_menu;
+    com.actionbarsherlock.view.Menu options_menu;
     TodoApplication m_app;
 
     // filter variables
@@ -88,7 +92,7 @@ public class TodoTxtTouch extends ListActivity implements
     private static final int SYNC_CONFLICT_DIALOG = 101;
 
     private View mRefreshIndeterminateProgressView;
-    private MenuItem refreshItem;
+    private com.actionbarsherlock.view.MenuItem refreshItem;
 
 
     private ActionMode actionMode;
@@ -100,7 +104,7 @@ public class TodoTxtTouch extends ListActivity implements
     private ActionBarDrawerToggle m_drawerToggle;
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
+    public boolean onPrepareOptionsMenu(com.actionbarsherlock.view.Menu menu) {
         // If the nav drawer is open, hide action items related to the content view
         boolean drawerOpen = m_drawerLayout.isDrawerOpen(m_drawerList);
         menu.findItem(R.id.filter).setVisible(!drawerOpen);
@@ -121,10 +125,10 @@ public class TodoTxtTouch extends ListActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(com.actionbarsherlock.view.MenuItem item) {
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
-        if (m_drawerToggle.onOptionsItemSelected(item)) {
+        if (m_drawerToggle.onOptionsItemSelected((MenuItem)item)) {
             return true;
         }
         // Handle your other action bar items...
@@ -260,8 +264,8 @@ public class TodoTxtTouch extends ListActivity implements
 
         // Set the drawer toggle as the DrawerListener
         m_drawerLayout.setDrawerListener(m_drawerToggle);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
         // Show search or filter results
         Intent intent = getIntent();
@@ -462,8 +466,8 @@ public class TodoTxtTouch extends ListActivity implements
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
+    public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+        com.actionbarsherlock.view.MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.main, menu);
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
