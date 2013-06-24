@@ -45,6 +45,7 @@ import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.view.*;
 import android.widget.*;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import nl.mpcjanssen.simpletask.remote.RemoteClient;
 import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.*;
@@ -98,6 +99,8 @@ public class TodoTxtTouch extends ListActivity implements
 	private ListView m_drawerList;
 	private DrawerLayout m_drawerLayout;
 	private ActionBarDrawerToggle m_drawerToggle;
+	private boolean m_hideCompleted = false;
+	private boolean m_hideFuture = false;
 
 
 	@Override
@@ -111,6 +114,14 @@ public class TodoTxtTouch extends ListActivity implements
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		m_drawerToggle.onConfigurationChanged(newConfig);
+	}
+	
+	private void hideCompleted(boolean state) {
+		m_hideCompleted = state;		
+	}
+	
+	private void hideFuture(boolean state) {
+		m_hideFuture = state;		
 	}
 
 	@Override
@@ -238,12 +249,12 @@ public class TodoTxtTouch extends ListActivity implements
 
 			/** Called when a drawer has settled in a completely closed state. */
 			public void onDrawerClosed(View view) {
-				setTitle(R.string.app_label);
+				//setTitle(R.string.app_label);
 			}
 
 			/** Called when a drawer has settled in a completely open state. */
 			public void onDrawerOpened(View drawerView) {
-				setTitle(R.string.changelist);
+				//setTitle(R.string.changelist);
 			}
 		};
 
@@ -884,6 +895,127 @@ public class TodoTxtTouch extends ListActivity implements
 		}
 		m_adapter.setFilteredTasks();
 	}
+	
+	public class DrawerAdapter extends BaseAdapter implements ListAdapter {
+		int headerItems;
+		ArrayAdapter<String> itemsAdapter;
+		private LayoutInflater m_inflater;
+		public DrawerAdapter(Context ctx, LayoutInflater inflater , int listItemLayout,
+				ArrayList<String> m_lists) {
+			itemsAdapter = new ArrayAdapter<String>(ctx,
+					listItemLayout, m_lists);
+			headerItems = 3;
+			this.m_inflater = inflater;
+			
+		}
+
+		@Override
+		public int getCount() {
+			return headerItems+itemsAdapter.getCount();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			if ( position < headerItems) {
+				return itemsAdapter.getItem(0);
+			} else {
+				return itemsAdapter.getItem(position-headerItems);
+			}
+		}
+
+		@Override
+		public long getItemId(int position) {
+			if ( position < headerItems) {
+				return itemsAdapter.getItemId(0);
+			} else {
+				return itemsAdapter.getItemId(position-headerItems);
+			}
+		}
+
+		@Override
+		public View getView(int position, View arg1, ViewGroup arg2) {
+			if (position == Constants.HIDE_COMPLETED) {
+				View convertView = m_inflater.inflate(R.layout.drawer_checkbox, null);
+				TextView t = (TextView) convertView
+						.findViewById(R.id.header_checkbox_title);
+				t.setText(R.string.hide_completed);
+				CheckBox c = (CheckBox) convertView.findViewById(R.id.header_checkbox);
+				c.setChecked(m_hideCompleted);
+				c.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+					@Override
+					public void onCheckedChanged(CompoundButton buttonView,
+							boolean isChecked) {
+							hideCompleted(isChecked);
+							m_adapter.setFilteredTasks();
+							m_drawerLayout.closeDrawer(m_drawerList);					
+					}
+					
+				});
+				return convertView;
+			} else if (position == Constants.HIDE_FUTURE) {
+				View convertView = m_inflater.inflate(R.layout.drawer_checkbox, null);
+				TextView t = (TextView) convertView
+						.findViewById(R.id.header_checkbox_title);
+				t.setText(R.string.hide_future);
+				CheckBox c = (CheckBox) convertView.findViewById(R.id.header_checkbox);
+				c.setChecked(m_hideFuture);
+				c.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+					@Override
+					public void onCheckedChanged(CompoundButton buttonView,
+							boolean isChecked) {
+							hideFuture(isChecked);
+							m_adapter.setFilteredTasks();
+							m_drawerLayout.closeDrawer(m_drawerList);					
+					}
+					
+				});
+				return convertView;
+			} else if (position == 2) {
+				View convertView = m_inflater.inflate(R.layout.drawer_header, null);
+				TextView t = (TextView) convertView
+					.findViewById(R.id.drawer_header_title);
+				t.setText(R.string.context_prompt);
+				return convertView;
+			} else {
+				return itemsAdapter.getView(position-headerItems, arg1, arg2);
+			}
+		}
+
+		@Override
+		public boolean areAllItemsEnabled() {
+			return false;
+		}
+
+		@Override
+		public int getItemViewType(int position) {
+			if (position<2) {
+				return 0;
+			} else if (position==2) {
+				return 1;
+			} else {
+				return 2;
+			}
+		}
+
+		@Override
+		public int getViewTypeCount() {
+			return 3;
+		}
+
+		@Override
+		public boolean hasStableIds() {
+			return true;
+		}
+
+		@Override
+		public boolean isEnabled(int position) {
+			return (position>=headerItems);
+		}
+		
+		
+	}
 
 	public class TaskAdapter extends BaseAdapter implements ListAdapter,
 			Filterable {
@@ -907,9 +1039,15 @@ public class TodoTxtTouch extends ListActivity implements
 			AndFilter filter = new AndFilter();
 			visibleTasks.clear();
 			for (Task t : taskBag.getTasks()) {
-				if (filter.apply(t)) {
-					visibleTasks.add(t);
+				if (m_hideCompleted && t.isCompleted()) {
+					continue;
 				}
+				if (m_hideFuture && t.inFuture()) {
+					continue;
+				}
+				if (filter.apply(t)) {
+						visibleTasks.add(t);
+				}					
 			}
 			Collections.sort(visibleTasks, MultiComparator.create(m_sorts));
 			positionToIndex.clear();
@@ -1168,8 +1306,7 @@ public class TodoTxtTouch extends ListActivity implements
 
 	private void updateDrawerList() {
 		m_lists = taskBag.getContexts(true);
-		m_drawerList.setAdapter(new ArrayAdapter<String>(this,
-				R.layout.drawer_list_item, m_lists));
+		m_drawerList.setAdapter(new DrawerAdapter(this, getLayoutInflater(), R.layout.drawer_list_item, m_lists));
 	}
 
 	private static class ViewHolder {

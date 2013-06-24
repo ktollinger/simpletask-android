@@ -88,7 +88,12 @@ public class Constants {
     public final static String INTENT_SYNC_START = "nl.mpcjanssen.todotxtholo.SYNC_START";
     public final static String INTENT_SYNC_DONE = "nl.mpcjanssen.todotxtholo.SYNC_DONE";
     public final static String INTENT_START_FILTER = "nl.mpcjanssen.todotxtholo.START_WITH_FILTER";
-
+    
+    
+    // Header checkboxes    
+    public static final int HIDE_COMPLETED = 0;
+    public static final int HIDE_FUTURE = 1;
+    
     // Constants for saving state
     public static final String LAYOUT_ID = "layoutId";
     public static final String LISTVIEW_ID = "lvId";
