@@ -127,12 +127,6 @@ public class FilterActivity extends Activity {
             		applyFilter();
             	}
                 break;
-            case R.id.menu_select_all:
-                selectAll();
-                break;
-            case R.id.menu_clear_all:
-                clearAll();
-                break;
             case R.id.menu_add_filter_shortcut:
                 createFilterShortcut();
                 break;
@@ -140,21 +134,6 @@ public class FilterActivity extends Activity {
         return true;
     }
 
-    private void selectAll() {
-        String tag = (String) actionbar.getSelectedTab().getTag();
-        if (!tag.equals(getString(R.string.sort))) {
-            FilterListFragment fr = (FilterListFragment) getFragmentManager().findFragmentByTag(tag);
-            fr.selectAll();
-        }
-    }
-
-    private void clearAll() {
-        String tag = (String) actionbar.getSelectedTab().getTag();
-        if (!tag.equals(getString(R.string.sort))) {
-            FilterListFragment fr = (FilterListFragment) getFragmentManager().findFragmentByTag(tag);
-            fr.clearAll();
-        }
-    }
 
     // Safe the active tab on configuration changes
     @Override
