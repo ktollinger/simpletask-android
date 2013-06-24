@@ -249,7 +249,7 @@ public class TodoApplication extends Application {
             i.setAction(Constants.INTENT_SYNC_START);
             sendBroadcast(i);
             m_pushing = true;
-            updateUI();
+            //updateUI(false);
 
             new AsyncTask<Void, Void, Integer>() {
                 static final int SUCCESS = 0;
@@ -281,7 +281,7 @@ public class TodoApplication extends Application {
                         Log.d(TAG, "taskBag.pushToRemote done");
                         m_pushing = false;
                         setNeedToPush(false);
-                        updateUI();
+                        //updateUI(false);
                         // Push is complete. Now do a pull in case the remote
                         // done.txt has changed.
                         pullFromRemote(true);
@@ -338,7 +338,7 @@ public class TodoApplication extends Application {
                     if (result) {
                         Log.d(TAG, "taskBag.pullFromRemote done");
                         m_pulling = false;
-                        updateUI();
+                        //updateUI();
                     } else {
                         sendBroadcast(new Intent(Constants.INTENT_ASYNC_FAILED));
                     }
@@ -361,7 +361,10 @@ public class TodoApplication extends Application {
      * if it is visible (by broadcasting an intent). All widgets will be updated as well.
      * This method should be called whenever the TaskBag changes.
      */
-    private void updateUI() {
+    public void updateUI(boolean reload) {
+    	if (reload) {
+    		taskBag.reload();
+    	}
         sendBroadcast(new Intent(Constants.INTENT_UPDATE_UI));
         updateWidgets();
     }
@@ -395,7 +398,7 @@ public class TodoApplication extends Application {
                 showToast("Synchronizing Failed");
                 m_pulling = false;
                 m_pushing = false;
-                updateUI();
+                //updateUI();
             }
         }
     }

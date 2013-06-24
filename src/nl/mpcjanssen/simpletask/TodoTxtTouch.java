@@ -168,7 +168,8 @@ public class TodoTxtTouch extends ListActivity implements
 					finish();
 				} else if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_UPDATE_UI)) {
-					m_adapter.setFilteredTasks(false);
+					m_adapter.setFilteredTasks();
+					updateDrawerList();
 				} else if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_SYNC_CONFLICT)) {
 					handleSyncConflict();
@@ -189,10 +190,7 @@ public class TodoTxtTouch extends ListActivity implements
 					if (refreshItem != null) {
 						refreshItem.setActionView(null);
 					}
-					m_adapter.setFilteredTasks(true);
-					Intent i = new Intent();
-					i.setAction(Constants.INTENT_UPDATE_UI);
-					sendBroadcast(i);
+					m_app.updateUI(true);
 				}
 			}
 		};
@@ -347,7 +345,7 @@ public class TodoTxtTouch extends ListActivity implements
 			m_adapter = new TaskAdapter(this, R.layout.list_item,
 					getLayoutInflater(), getListView());
 		}
-		m_adapter.setFilteredTasks(true);
+		m_adapter.setFilteredTasks();
 
 		// listen to the ACTION_LOGOUT intent, if heard display LoginScreen
 		// and finish() current activity
@@ -523,10 +521,9 @@ public class TodoTxtTouch extends ListActivity implements
 					}
 				}
 				taskBag.store();
-				m_app.updateWidgets();
+				m_app.updateUI(false);
 				m_app.setNeedToPush(true);
 				// We have change the data, views should refresh
-				m_adapter.setFilteredTasks(false);
 				sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 			}
 		});
@@ -544,10 +541,9 @@ public class TodoTxtTouch extends ListActivity implements
 			taskBag.archive();
 		}
 		taskBag.store();
-		m_app.updateWidgets();
+		m_app.updateUI(false);
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 	}
 
@@ -558,10 +554,9 @@ public class TodoTxtTouch extends ListActivity implements
 			}
 		}
 		taskBag.store();
-		m_app.updateWidgets();
+		m_app.updateUI(false);
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 	}
 
@@ -586,9 +581,8 @@ public class TodoTxtTouch extends ListActivity implements
 								t.setPrependedDate(selected);
 							}
 						}
-						m_adapter.setFilteredTasks(false);
 						taskBag.store();
-						m_app.updateWidgets();
+						m_app.updateUI(false);
 						m_app.setNeedToPush(true);
 						// We have change the data, views should refresh
 						sendBroadcast(new Intent(
@@ -604,9 +598,7 @@ public class TodoTxtTouch extends ListActivity implements
 				taskBag.delete(t);
 			}
 		}
-		m_adapter.setFilteredTasks(false);
-		taskBag.store();
-		m_app.updateWidgets();
+		m_app.updateUI(false);
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
@@ -681,8 +673,7 @@ public class TodoTxtTouch extends ListActivity implements
 		if (actionMode!=null) {
 			actionMode.finish();
 		}
-		m_adapter.setFilteredTasks(false);
-
+		m_adapter.setFilteredTasks();
 	}
 	
 
@@ -856,7 +847,7 @@ public class TodoTxtTouch extends ListActivity implements
 			finish();
 		} else { // otherwise just clear the filter in the current activity
 			clearFilter();
-			m_adapter.setFilteredTasks(false);
+			m_adapter.setFilteredTasks();
 		}
 	}
 
@@ -891,6 +882,7 @@ public class TodoTxtTouch extends ListActivity implements
 		if (checked!=-1) {
 			m_drawerList.setItemChecked(checked, false);
 		}
+		m_adapter.setFilteredTasks();
 	}
 
 	public class TaskAdapter extends BaseAdapter implements ListAdapter,
@@ -909,15 +901,8 @@ public class TodoTxtTouch extends ListActivity implements
 			this.m_inflater = inflater;
 		}
 
-		void setFilteredTasks(boolean reload) {
-			Log.v(TAG, "setFilteredTasks called, reload: " + reload);
-			if (reload) {
-				taskBag.reload();
-				// Update lists in side drawer
-				// Set the adapter for the list view
-				updateDrawerList();
-
-			}
+		void setFilteredTasks() {
+			Log.v(TAG, "setFilteredTasks called");
 
 			AndFilter filter = new AndFilter();
 			visibleTasks.clear();
@@ -1175,7 +1160,7 @@ public class TodoTxtTouch extends ListActivity implements
 				@Override
 				protected void publishResults(CharSequence charSequence,
 						FilterResults filterResults) {
-					setFilteredTasks(false);
+					setFilteredTasks();
 				}
 			};
 		}
@@ -1362,7 +1347,7 @@ public class TodoTxtTouch extends ListActivity implements
 				break;
 			}
 			mode.finish();
-			m_adapter.setFilteredTasks(false);
+			//m_adapter.setFilteredTasks(false);
 			return true;
 		}
 
@@ -1389,7 +1374,7 @@ public class TodoTxtTouch extends ListActivity implements
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
 			actionMode = null;
-			m_adapter.setFilteredTasks(false);
+			//m_adapter.setFilteredTasks(false);
 			return;
 		}
 	}
