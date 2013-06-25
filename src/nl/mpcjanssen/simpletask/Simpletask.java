@@ -195,6 +195,7 @@ public class Simpletask extends ListActivity  {
         m_drawerLayout.setDrawerListener(m_drawerToggle);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
+        m_drawerToggle.syncState();
 
         // Show search or filter results
         clearFilter(false);
