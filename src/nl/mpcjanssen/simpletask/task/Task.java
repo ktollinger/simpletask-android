@@ -55,6 +55,7 @@ public class Task implements Serializable, Comparable<Task> {
     private List<String> phoneNumbers;
     private List<String> mailAddresses;
     private List<URL> links;
+	private SimpleDateFormat formatter;
 
 
     public Task(long id, String rawText, Date defaultPrependedDate) {
@@ -88,17 +89,15 @@ public class Task implements Serializable, Comparable<Task> {
         this.contexts = ContextParser.getInstance().parse(text);
         this.projects = ProjectParser.getInstance().parse(text);
         this.deleted = Strings.isEmptyOrNull(text);
-
+        this.formatter = new SimpleDateFormat(Constants.DATE_FORMAT,Locale.US);
         if (defaultPrependedDate != null
                 && Strings.isEmptyOrNull(this.prependedDate)) {
-            SimpleDateFormat formatter = new SimpleDateFormat(Constants.DATE_FORMAT,Locale.US);
             this.prependedDate = formatter.format(defaultPrependedDate);
         }
 
         if (!Strings.isEmptyOrNull(this.prependedDate)) {
-            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT, Locale.US);
             try {
-                Date d = sdf.parse(this.prependedDate);
+                Date d = formatter.parse(this.prependedDate);
                 this.relativeAge = RelativeDate.getRelativeDate(d);
             } catch (ParseException e) {
                 // e.printStackTrace();
@@ -144,9 +143,8 @@ public class Task implements Serializable, Comparable<Task> {
 
     public void setPrependedDate(String date) {
         this.prependedDate = date;
-        SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT, Locale.US);
         try {
-            Date d = sdf.parse(this.prependedDate);
+            Date d = formatter.parse(this.prependedDate);
             this.relativeAge = RelativeDate.getRelativeDate(d);
          } catch (ParseException e) {
          // e.printStackTrace();
@@ -181,9 +179,8 @@ public class Task implements Serializable, Comparable<Task> {
         if (Strings.isEmptyOrNull(this.getPrependedDate())) {
             return false;
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT, Locale.US);
             try {
-                Date createDate = sdf.parse(this.prependedDate);
+                Date createDate = formatter.parse(this.prependedDate);
                 Date now = new Date();
                 return createDate.after(now);
             } catch (ParseException e) {
@@ -199,8 +196,7 @@ public class Task implements Serializable, Comparable<Task> {
 
     public void markComplete(Date date) {
         if (!this.completed) {
-            this.completionDate = new SimpleDateFormat(Constants.DATE_FORMAT, Locale.US)
-                    .format(date);
+            this.completionDate = formatter.format(date);
             this.deleted = false;
             this.completed = true;
         }
@@ -270,26 +266,8 @@ public class Task implements Serializable, Comparable<Task> {
 
     @Override
     public int hashCode() {
-
         final int prime = 31;
-        int result = 1;
-        result = prime * result + (completed ? 1231 : 1237);
-        result = prime * result
-                + ((completionDate == null) ? 0 : completionDate.hashCode());
-        result = prime * result
-                + ((contexts == null) ? 0 : contexts.hashCode());
-        result = prime * result + (deleted ? 1231 : 1237);
-        result = prime * result + (int) (id ^ (id >>> 32));
-        result = prime * result
-                + ((prependedDate == null) ? 0 : prependedDate.hashCode());
-        result = prime * result
-                + ((priority == null) ? 0 : priority.hashCode());
-        result = prime * result
-                + ((projects == null) ? 0 : projects.hashCode());
-        result = prime * result
-                + ((relativeAge == null) ? 0 : relativeAge.hashCode());
-        result = prime * result + ((text == null) ? 0 : text.hashCode());
-        return result;
+    	return originalText.hashCode()+(int)(this.id*prime);
     }
 
     public void initWithFilters(ArrayList<String> ctxts, ArrayList<String> pjs) {
