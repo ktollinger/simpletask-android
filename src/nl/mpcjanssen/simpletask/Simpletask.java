@@ -561,9 +561,18 @@ public class Simpletask extends ListActivity  {
     }
 
     private void changeList(String listName) {
-                 clearFilter(true);
-                 m_contexts.add(listName);
-                 m_adapter.setFilteredTasks();
+		m_contexts.clear();
+		m_contextsNot = false;
+		Intent intent = getIntent();
+		m_contexts.add(listName);
+		intent.putExtra(Constants.INTENT_CONTEXTS_FILTER,
+				Util.join(m_contexts, "\n"));
+		intent.putExtra(Constants.INTENT_CONTEXTS_FILTER_NOT, m_contextsNot);
+		setIntent(intent);
+		if (actionMode!=null) {
+			actionMode.finish();
+		}
+		m_adapter.setFilteredTasks();
     }
 
     private void startAddTaskActivity(Task task) {
@@ -623,6 +632,10 @@ public class Simpletask extends ListActivity  {
         m_search = null;
         m_priosNot = false;
         m_contextsNot = false;
+        updateDrawerList();
+		if (actionMode!=null) {
+			actionMode.finish();
+		}
     }
     
 	private void updateDrawerList() {
