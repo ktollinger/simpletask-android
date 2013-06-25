@@ -147,7 +147,7 @@ public class Simpletask extends ListActivity  {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equalsIgnoreCase(
                         Constants.INTENT_UPDATE_UI)) {
-                    m_adapter.setFilteredTasks(true);
+                    m_adapter.setFilteredTasks();
                 }
             }
         };
@@ -285,7 +285,7 @@ public class Simpletask extends ListActivity  {
                     getLayoutInflater(), getListView());
             setListAdapter(this.m_adapter);
         }
-        m_adapter.setFilteredTasks(true);
+        m_adapter.setFilteredTasks();
 
         // listen to the ACTION_LOGOUT intent, if heard display LoginScreen
         // and finish() current activity
@@ -454,7 +454,7 @@ public class Simpletask extends ListActivity  {
                 taskBag.store();
                 m_app.updateWidgets();
                 // We have change the data, views should refresh
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks();
             }
         });
         builder.show();
@@ -470,7 +470,7 @@ public class Simpletask extends ListActivity  {
         taskBag.store();
         m_app.updateWidgets();
         // We have change the data, views should refresh
-        m_adapter.setFilteredTasks(true);
+        m_adapter.setFilteredTasks();
     }
 
     private void undoCompleteTasks(List<Task> tasks) {
@@ -482,7 +482,7 @@ public class Simpletask extends ListActivity  {
         taskBag.store();
         m_app.updateWidgets();
         // We have change the data, views should refresh
-        m_adapter.setFilteredTasks(true);
+        m_adapter.setFilteredTasks();
     }
 
     private void deferTasks(List<Task> tasks) {
@@ -505,7 +505,7 @@ public class Simpletask extends ListActivity  {
                                 t.setPrependedDate(selected);
                             }
                         }
-                        m_adapter.setFilteredTasks(false);
+                        m_adapter.setFilteredTasks();
                         taskBag.store();
                         m_app.updateWidgets();
                     }
@@ -523,8 +523,9 @@ public class Simpletask extends ListActivity  {
                         taskBag.delete(t);
                     }
                 }
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks();
                 taskBag.store();
+                updateDrawerList(); 
                 m_app.updateWidgets();
             }
         });
@@ -551,7 +552,7 @@ public class Simpletask extends ListActivity  {
                 break;
             case R.id.archive:
                 taskBag.archive();
-                m_adapter.setFilteredTasks(true);
+                m_adapter.setFilteredTasks();
                 break;
             default:
                 return super.onMenuItemSelected(featureId, item);
@@ -562,7 +563,7 @@ public class Simpletask extends ListActivity  {
     private void changeList(String listName) {
                  clearFilter(true);
                  m_contexts.add(listName);
-                 m_adapter.setFilteredTasks(false);
+                 m_adapter.setFilteredTasks();
     }
 
     private void startAddTaskActivity(Task task) {
@@ -591,7 +592,7 @@ public class Simpletask extends ListActivity  {
             finish();
         } else { // otherwise just clear the filter in the current activity
             clearFilter(true);
-            m_adapter.setFilteredTasks(false);
+            m_adapter.setFilteredTasks();
         }
     }
 
@@ -623,6 +624,11 @@ public class Simpletask extends ListActivity  {
         m_priosNot = false;
         m_contextsNot = false;
     }
+    
+	private void updateDrawerList() {
+		m_lists = taskBag.getContexts(true);
+		m_drawerList.setAdapter(new ArrayAdapter(this, R.layout.drawer_list_item, m_lists));
+	}
 
 
 
@@ -644,12 +650,7 @@ public class Simpletask extends ListActivity  {
 
         }
 
-        void setFilteredTasks(boolean reload) {
-            Log.v(TAG, "setFilteredTasks called, reload: " + reload);
-            if (reload) {
-                taskBag.reload();
-            }
-
+        void setFilteredTasks() {
             AndFilter filter = new AndFilter();
             visibleTasks.clear();
             for (Task t : taskBag.getTasks()) {
@@ -719,8 +720,7 @@ public class Simpletask extends ListActivity  {
             for (DataSetObserver ob : obs) {
                 ob.onChanged();
             }
-            updateFilterBar();
-
+            updateFilterBar();  
         }
 
 
@@ -900,7 +900,7 @@ public class Simpletask extends ListActivity  {
 
                 @Override
                 protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                    setFilteredTasks(false);
+                    setFilteredTasks();
                 }
             };
         }
@@ -1090,7 +1090,7 @@ public class Simpletask extends ListActivity  {
                     break;
             }
             mode.finish();
-            m_adapter.setFilteredTasks(false);
+            m_adapter.setFilteredTasks();
             return true;
         }
 
@@ -1117,7 +1117,6 @@ public class Simpletask extends ListActivity  {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
-            m_adapter.setFilteredTasks(false);
             return;
         }
     }
