@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2010 The Android Open Source Project
+<!-- Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 <com.actionbarsherlock.internal.view.menu.ListMenuItemView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="?attr/dropdownListPreferredItemHeight"
-    android:minWidth="196dip"
-    android:paddingRight="16dip">
+    android:layout_height="?attr/listPreferredItemHeightSmall">
     
     <!-- Icon will be inserted here. -->
     
@@ -28,7 +26,8 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="16dip"
+        android:layout_marginLeft="?attr/listPreferredItemPaddingLeft"
+        android:layout_marginRight="?attr/listPreferredItemPaddingRight"
         android:duplicateParentState="true">
         
         <TextView 
@@ -37,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:textAppearance="?attr/textAppearanceLargePopupMenu"
+            android:textAppearance="?attr/textAppearanceListItemSmall"
             android:singleLine="true"
             android:duplicateParentState="true"
             android:ellipsize="marquee"
@@ -49,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/abs__title"
             android:layout_alignParentLeft="true"
-            android:textAppearance="?attr/textAppearanceSmallPopupMenu"
+            android:textAppearance="?attr/textAppearanceSmall"
             android:singleLine="true"
             android:duplicateParentState="true" />
 
