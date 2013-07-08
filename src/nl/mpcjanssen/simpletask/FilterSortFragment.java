@@ -1,14 +1,10 @@
 package nl.mpcjanssen.simpletask;
 
-import android.app.ActionBar;
 import android.app.Fragment;
+import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -22,45 +18,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FilterSortFragment extends Fragment {
+public class FilterSortFragment extends ListFragment {
     
     private final static String STATE_SELECTED = "selectedItem";
 
     private ArrayList<String> originalItems;
-    private DragSortListView lv;
+    private ListView lv;
     SortItemAdapter adapter;
     ArrayList<String> directions = new ArrayList<String>();
     ArrayList<String> adapterList = new ArrayList<String>();
-
-    private DragSortListView.DropListener onDrop =
-            new DragSortListView.DropListener() {
-                @Override
-                public void drop(int from, int to) {
-                    if (from != to) {
-                        String item = adapter.getItem(from);
-                        adapter.remove(item);
-                        adapter.insert(item, to);
-                        String sortItem = directions.get(from);
-                        directions.remove(from);
-                        directions.add(to,sortItem);
-                    }
-                }
-            };
-
-    private DragSortListView.RemoveListener onRemove =
-            new DragSortListView.RemoveListener() {
-                @Override
-                public void remove(int which) {
-                    adapter.remove(adapter.getItem(which));
-                }
-            };
-
-    protected int getLayout() {
-        // this DSLV xml declaration does not call for the use
-        // of the default DragSortController; therefore,
-        // DSLVFragment has a buildController() method.
-        return R.layout.simple_list_item_single_choice;
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -71,6 +37,7 @@ public class FilterSortFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        super.onCreateView(inflater,container,savedInstanceState);
         Bundle arguments = getArguments();
         if (savedInstanceState != null) {
             originalItems = savedInstanceState.getStringArrayList(STATE_SELECTED);
@@ -80,6 +47,7 @@ public class FilterSortFragment extends Fragment {
         adapterList.clear();
         LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.single_filter,
                 container, false);
+
         String[] values = getResources().getStringArray(R.array.sort);
         String[] keys = getResources().getStringArray(R.array.sortKeys);
         for (String item : originalItems) {
@@ -113,26 +81,25 @@ public class FilterSortFragment extends Fragment {
             }
         }
 
-        lv = (DragSortListView) layout.findViewById(R.id.listview);
-        lv.setDropListener(onDrop);
-        lv.setRemoveListener(onRemove);
-        adapter = new SortItemAdapter(getActivity(), R.layout.list_item_handle_right, R.id.text, adapterList);
-        lv.setAdapter(adapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String direction = directions.get(position);
-                if (direction.equals(Constants.REVERSED_SORT)) {
-                    direction = Constants.NORMAL_SORT;
-                } else {
-                    direction = Constants.REVERSED_SORT;
-                }
-                directions.remove(position);
-                directions.add(position,direction);
-                adapter.notifyDataSetChanged();
-            }
-        });
+
+        adapter = new SortItemAdapter(getActivity(), R.layout.list_item_direction, R.id.text, adapterList);
+        setListAdapter(adapter);
+
         return layout;
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        String direction = directions.get(position);
+        if (direction.equals(Constants.REVERSED_SORT)) {
+            direction = Constants.NORMAL_SORT;
+        } else {
+            direction = Constants.REVERSED_SORT;
+        }
+        directions.remove(position);
+        directions.add(position, direction);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
