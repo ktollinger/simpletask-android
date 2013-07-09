@@ -4,6 +4,7 @@ import android.util.Log;
 import nl.mpcjanssen.simpletask.Constants;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -59,6 +60,7 @@ public class MultiComparator<Task> implements Comparator<Task> {
 
     public int compare(Task o1, Task o2) {
         for (Comparator<Task> comparator : comparators) {
+            if (comparator==null) return 0;
             int comparison = comparator.compare(o1, o2);
             if (comparison != 0) return comparison;
         }

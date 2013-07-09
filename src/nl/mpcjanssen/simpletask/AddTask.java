@@ -39,7 +39,6 @@ import android.view.View;
 import android.widget.EditText;
 import nl.mpcjanssen.simpletask.task.Priority;
 import nl.mpcjanssen.simpletask.task.Task;
-import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.todotxtholo.R;
 
@@ -56,7 +55,7 @@ public class AddTask extends Activity {
 
     private Task m_backup;
     private TodoApplication m_app;
-    private TaskBag taskBag;
+    private TodoApplication.TaskBag taskBag;
 
     private String share_text;
 
@@ -88,18 +87,12 @@ public class AddTask extends Activity {
                     input = input.replaceAll("\\r\\n|\\r|\\n", " ");
                     taskBag.updateTask(m_backup, input);
                 } else {
+                    ArrayList<Task> tasksToAdd = new ArrayList<Task>();
                     for (String taskText : input.split("\\r\\n|\\r|\\n")) {
-                        taskBag.addAsTask(taskText);
+                        tasksToAdd.add(new Task(0, taskText));
                     }
+                    taskBag.addTasks(tasksToAdd);
                 }
-
-                m_app.setNeedToPush(true);
-                m_app.updateWidgets();
-                if (m_app.isAutoArchive()) {
-                    taskBag.archive();
-                }
-                sendBroadcast(new Intent(
-                        Constants.INTENT_START_SYNC_TO_REMOTE));
                 finish();
                 break;
             case R.id.menu_add_task_help:
@@ -125,10 +118,6 @@ public class AddTask extends Activity {
     private void noteToSelf (Intent intent) {
         String task = intent.getStringExtra(Intent.EXTRA_TEXT);
         taskBag.addAsTask(task);
-        m_app.setNeedToPush(true);
-        m_app.updateWidgets();
-        sendBroadcast(new Intent(
-                Constants.INTENT_START_SYNC_TO_REMOTE));
         m_app.showToast(R.string.task_added);
     }
 
@@ -137,6 +126,10 @@ public class AddTask extends Activity {
         super.onCreate(savedInstanceState);
         Log.v(TAG, "onCreate()");
         m_app = (TodoApplication) getApplication();
+        if(!m_app.isLoggedIn()) {
+            m_app.startLogin(this);
+            return;
+        }
         taskBag = m_app.getTaskBag();
         final Intent intent = getIntent();
         final String action = intent.getAction();
@@ -171,18 +164,17 @@ public class AddTask extends Activity {
         Task iniTask = null;
         setTitle(R.string.addtask);
 
-        Task task = (Task) intent.getSerializableExtra(
+        Task m_backup = (Task) intent.getSerializableExtra(
                 Constants.EXTRA_TASK);
-        if (task != null) {
-            m_backup = taskBag.find(task);
-            textInputField.setText(task.inFileFormat());
+        if (m_backup != null) {
+            textInputField.setText(m_backup.inFileFormat());
             setTitle(R.string.updatetask);
-            textInputField.setSelection(task.inFileFormat().length());
+            textInputField.setSelection(m_backup.inFileFormat().length());
         } else {
             if (textInputField.getText().length() == 0) {
                 ArrayList<String> projects = (ArrayList<String>) intent.getSerializableExtra(Constants.EXTRA_PROJECTS_SELECTED);
                 ArrayList<String> contexts = (ArrayList<String>) intent.getSerializableExtra(Constants.EXTRA_CONTEXTS_SELECTED);
-                iniTask = new Task(1, "");
+                iniTask = new Task(0, "");
                 iniTask.initWithFilters(contexts, projects);
             }
         }

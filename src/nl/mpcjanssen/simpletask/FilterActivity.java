@@ -14,7 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import nl.mpcjanssen.simpletask.task.Priority;
-import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.todotxtholo.R;
 
@@ -43,7 +42,12 @@ public class FilterActivity extends Activity {
         actionbar = getActionBar();
         actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        TaskBag taskBag = ((TodoApplication)getApplication()).getTaskBag();
+        TodoApplication app = (TodoApplication) getApplication();
+        if (!app.isLoggedIn()) {
+            app.startLogin(this);
+            return;
+        }
+        TodoApplication.TaskBag taskBag = app.getTaskBag();
         if (getIntent().getAction()!=null) {
         	asWidgetConfigure = getIntent().getAction().equals(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         }

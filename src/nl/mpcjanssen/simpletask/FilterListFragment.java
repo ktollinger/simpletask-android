@@ -84,22 +84,6 @@ public class FilterListFragment extends Fragment {
 
         cb.setChecked(not);
 
-        gestureDetector = new GestureDetector(TodoApplication.appContext,
-                new FilterGestureDetector());
-        OnTouchListener gestureListener = new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (gestureDetector.onTouchEvent(event)) {
-                    MotionEvent cancelEvent = MotionEvent.obtain(event);
-                    cancelEvent.setAction(MotionEvent.ACTION_CANCEL);
-                    v.onTouchEvent(cancelEvent);
-                    return true;
-                }
-                return false;
-            }
-        };
-
-        lv.setOnTouchListener(gestureListener);
         return layout;
     }
 

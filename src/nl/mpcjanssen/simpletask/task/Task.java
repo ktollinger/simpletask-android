@@ -44,7 +44,6 @@ public class Task implements Serializable, Comparable<Task> {
     private String originalText;
     private final Priority originalPriority;
 
-    private long id;
     private Priority priority;
     private boolean deleted = false;
     private boolean completed = false;
@@ -59,26 +58,25 @@ public class Task implements Serializable, Comparable<Task> {
     private List<URL> links;
     private Date dueDate;
     private SimpleDateFormat formatter;
+    private long line;
 
 
-
-
-    public Task(long id, String rawText, Date defaultPrependedDate) {
-        this.id = id;
-        this.init(rawText, defaultPrependedDate);
+    public Task(long line, String rawText, Date defaultPrependedDate) {
+        this.init(line, rawText, defaultPrependedDate);
         this.originalPriority = priority;
         this.originalText = text;
     }
 
-    public Task(long id, String rawText) {
-        this(id, rawText, null);
+    public Task(long line, String rawText) {
+        this(line, rawText, null);
     }
 
-    public void update(String rawText) {
-        this.init(rawText, null);
+    public void update(long line, String rawText) {
+        this.init(line, rawText, null);
     }
 
-    public void init(String rawText, Date defaultPrependedDate) {
+    public void init(long line, String rawText, Date defaultPrependedDate) {
+        this.line = line;
         TextSplitter splitter = TextSplitter.getInstance();
         TextSplitter.SplitResult splitResult = splitter.split(rawText);
         this.priority = splitResult.priority;
@@ -136,10 +134,6 @@ public class Task implements Serializable, Comparable<Task> {
 
     public String getText() {
         return text;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public void setPriority(Priority priority) {
@@ -215,10 +209,6 @@ public class Task implements Serializable, Comparable<Task> {
         }
     }
 
-    public void delete() {
-        this.update("");
-    }
-
     // TODO need a better solution (TaskFormatter?) here
     public String inScreenFormat() {
         StringBuilder sb = new StringBuilder();
@@ -267,8 +257,7 @@ public class Task implements Serializable, Comparable<Task> {
     }
 
     public void copyInto(Task destination) {
-        destination.id = this.id;
-        destination.init(this.inFileFormat(), null);
+        destination.init(0, this.inFileFormat(), null);
     }
 
     @Override
@@ -280,34 +269,12 @@ public class Task implements Serializable, Comparable<Task> {
         if (getClass() != obj.getClass())
             return false;
         Task other = (Task) obj;
-
-        if (id != other.id)
-            return false;
         return (this.inFileFormat().equals(other.inFileFormat()));
     }
 
     @Override
     public int hashCode() {
-
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (completed ? 1231 : 1237);
-        result = prime * result
-                + ((completionDate == null) ? 0 : completionDate.hashCode());
-        result = prime * result
-                + ((contexts == null) ? 0 : contexts.hashCode());
-        result = prime * result + (deleted ? 1231 : 1237);
-        result = prime * result + (int) (id ^ (id >>> 32));
-        result = prime * result
-                + ((prependedDate == null) ? 0 : prependedDate.hashCode());
-        result = prime * result
-                + ((priority == null) ? 0 : priority.hashCode());
-        result = prime * result
-                + ((projects == null) ? 0 : projects.hashCode());
-        result = prime * result
-                + ((relativeAge == null) ? 0 : relativeAge.hashCode());
-        result = prime * result + ((text == null) ? 0 : text.hashCode());
-        return result;
+        return this.inFileFormat().hashCode();
     }
 
     public void initWithFilters(ArrayList<String> ctxts, ArrayList<String> pjs) {
@@ -321,16 +288,16 @@ public class Task implements Serializable, Comparable<Task> {
         }
     }
 
-    /**
-     * @param another Task to compare this task to
-     * @return comparison of the position of the tasks in the file
-     */
+	public void append(String string) {
+		this.init(line, originalText + " " + string , null);
+	}
+
     @Override
-    public int compareTo(Task another) {
-        return ((Long) this.getId()).compareTo(another.getId());
+    public int compareTo(Task task) {
+        return this.inFileFormat().compareTo(task.inFileFormat());
     }
 
-	public void append(String string) {
-		this.init(originalText + " " + string , null);		
-	}
+    public long getLine() {
+        return line;
+    }
 }

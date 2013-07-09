@@ -22,7 +22,6 @@
  */
 package nl.mpcjanssen.simpletask;
 
-import nl.mpcjanssen.simpletask.remote.RemoteClient;
 import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.ByContextFilter;
 import nl.mpcjanssen.simpletask.task.ByPriorityFilter;
@@ -30,7 +29,6 @@ import nl.mpcjanssen.simpletask.task.ByProjectFilter;
 import nl.mpcjanssen.simpletask.task.ByTextFilter;
 import nl.mpcjanssen.simpletask.task.Priority;
 import nl.mpcjanssen.simpletask.task.Task;
-import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.task.TaskFilter;
 import nl.mpcjanssen.simpletask.util.Strings;
 import nl.mpcjanssen.simpletask.util.Util;
@@ -43,7 +41,6 @@ import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshAttacher.OnRefres
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -94,17 +91,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class Simpletask extends ListActivity implements
-		OnSharedPreferenceChangeListener, OnRefreshListener {
+public class Simpletask extends ListActivity implements OnRefreshListener {
 
 	final static String TAG = Simpletask.class.getSimpleName();
 	private final static int REQUEST_FILTER = 1;
 	private final static int REQUEST_PREFERENCES = 2;
 
-	private TaskBag taskBag;
-	ProgressDialog m_ProgressDialog = null;
-	String m_DialogText = "";
-	Boolean m_DialogActive = false;
 	Menu options_menu;
 	TodoApplication m_app;
 
@@ -135,9 +127,10 @@ public class Simpletask extends ListActivity implements
 
 	// PullToRefresh
 	private PullToRefreshAttacher mPullToRefreshHelper;
+    private TodoApplication.TaskBag mTaskBag;
 
 
-	@Override
+    @Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
 		// Sync the toggle state after onRestoreInstanceState has occurred.
@@ -183,47 +176,31 @@ public class Simpletask extends ListActivity implements
 		m_app = (TodoApplication) getApplication();
 
 		final IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(Constants.INTENT_ACTION_ARCHIVE);
-		intentFilter.addAction(Constants.INTENT_SYNC_CONFLICT);
 		intentFilter.addAction(Constants.INTENT_ACTION_LOGOUT);
 		intentFilter.addAction(Constants.INTENT_UPDATE_UI);
-		intentFilter.addAction(Constants.INTENT_SYNC_START);
-		intentFilter.addAction(Constants.INTENT_SYNC_DONE);
+        intentFilter.addAction(Constants.INTENT_SYNC_START);
+        intentFilter.addAction(Constants.INTENT_SYNC_DONE);
 
 		m_broadcastReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				if (intent.getAction().equalsIgnoreCase(
-						Constants.INTENT_ACTION_ARCHIVE)) {
-					// archive
-					// refresh screen to remove completed tasks
-					// push to remote
-					archiveTasks();
-				} else if (intent.getAction().equalsIgnoreCase(
+                if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_ACTION_LOGOUT)) {
 					Log.v(TAG, "Logging out from Dropbox");
-					m_app.getRemoteClientManager().getRemoteClient()
-							.deauthenticate();
+					m_app.logout();
 					Intent i = new Intent(context, LoginScreen.class);
 					startActivity(i);
-					finish();
+					return;
 				} else if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_UPDATE_UI)) {
-					m_adapter.setFilteredTasks(false);
+					m_adapter.setFilteredTasks();
 				} else if (intent.getAction().equalsIgnoreCase(
-						Constants.INTENT_SYNC_CONFLICT)) {
-					handleSyncConflict();
-				} else if (intent.getAction().equalsIgnoreCase(
-						Constants.INTENT_SYNC_START)) {
-					mPullToRefreshHelper.setRefreshing(true);					
-				} else if (intent.getAction().equalsIgnoreCase(
-						Constants.INTENT_SYNC_DONE)) {
-					mPullToRefreshHelper.setRefreshComplete();
-					m_adapter.setFilteredTasks(true);
-					Intent i = new Intent();
-					i.setAction(Constants.INTENT_UPDATE_UI);
-					sendBroadcast(i);
-				}
+                        Constants.INTENT_SYNC_START)) {
+                    mPullToRefreshHelper.setRefreshing(true);
+                } else if (intent.getAction().equalsIgnoreCase(
+                        Constants.INTENT_SYNC_DONE)) {
+                    mPullToRefreshHelper.setRefreshing(false);
+                }
 			}
 		};
 		registerReceiver(m_broadcastReceiver, intentFilter);
@@ -235,15 +212,21 @@ public class Simpletask extends ListActivity implements
 
 	}
 
-	private void handleIntent(Bundle savedInstanceState) {
-		if (!m_app.isLinked() && !m_app.isManualMode()) {
-			startLogin();
-			return;
-		}
-		setContentView(R.layout.main);
-		m_app.m_prefs.registerOnSharedPreferenceChangeListener(this);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        m_app.watchDropbox(false);
+    }
 
-		taskBag = m_app.getTaskBag();
+    private void handleIntent(Bundle savedInstanceState) {
+        if (!m_app.isLoggedIn()) {
+            m_app.startLogin(this);
+            return;
+        }
+
+        mTaskBag = m_app.getTaskBag();
+        m_app.watchDropbox(true);
+		setContentView(R.layout.main);
 
 		m_prios = new ArrayList<Priority>();
 		m_contexts = new ArrayList<String>();
@@ -351,22 +334,22 @@ public class Simpletask extends ListActivity implements
 			}
 		} else {
 			// Set previous filters and sort
-			Log.v(TAG, "handleIntent: from m_prefs state");
+			Log.v(TAG, "handleIntent: from mPrefs state");
 			m_sorts = new ArrayList<String>();
-			m_sorts.addAll(Arrays.asList(m_app.m_prefs.getString("m_sorts", "")
+			m_sorts.addAll(Arrays.asList(m_app.mPrefs.getString("m_sorts", "")
 					.split("\n")));
 
 			Log.v(TAG, "Got sort from app prefs: " + m_sorts);
 
-			m_contexts = new ArrayList<String>(m_app.m_prefs.getStringSet(
+			m_contexts = new ArrayList<String>(m_app.mPrefs.getStringSet(
 					"m_contexts", Collections.<String> emptySet()));
-			m_prios = Priority.toPriority(new ArrayList<String>(m_app.m_prefs
+			m_prios = Priority.toPriority(new ArrayList<String>(m_app.mPrefs
 					.getStringSet("m_prios", Collections.<String> emptySet())));
-			m_projects = new ArrayList<String>(m_app.m_prefs.getStringSet(
+			m_projects = new ArrayList<String>(m_app.mPrefs.getStringSet(
 					"m_projects", Collections.<String> emptySet()));
-			m_contextsNot = m_app.m_prefs.getBoolean("m_contextsNot", false);
-			m_priosNot = m_app.m_prefs.getBoolean("m_priosNot", false);
-			m_projectsNot = m_app.m_prefs.getBoolean("m_projectsNot", false);
+			m_contextsNot = m_app.mPrefs.getBoolean("m_contextsNot", false);
+			m_priosNot = m_app.mPrefs.getBoolean("m_priosNot", false);
+			m_projectsNot = m_app.mPrefs.getBoolean("m_projectsNot", false);
 
 		}
 
@@ -385,7 +368,7 @@ public class Simpletask extends ListActivity implements
 			m_adapter = new TaskAdapter(this, R.layout.list_item,
 					getLayoutInflater(), getListView());
 		}
-		m_adapter.setFilteredTasks(true);
+		m_adapter.setFilteredTasks();
 
 		// listen to the ACTION_LOGOUT intent, if heard display LoginScreen
 		// and finish() current activity
@@ -436,17 +419,9 @@ public class Simpletask extends ListActivity implements
 		}
 	}
 
-	private void startLogin() {
-		Intent intent = new Intent(this, LoginScreen.class);
-		startActivity(intent);
-		finish();
-	}
-
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		m_app.m_prefs.unregisterOnSharedPreferenceChangeListener(this);
-		unregisterReceiver(m_broadcastReceiver);
 	}
 
 	@Override
@@ -475,22 +450,12 @@ public class Simpletask extends ListActivity implements
 	}
 
 	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-			String key) {
-		Log.v(TAG, "onSharedPreferenceChanged key=" + key);
-		if (Constants.PREF_ACCESSTOKEN_SECRET.equals(key)) {
-			Log.i(TAG, "New access token secret. Syncing!");
-			syncClient(false);
-		}
-	}
-
-	@Override
 	protected void onStop() {
 		super.onStop();
 		if (actionMode != null) {
 			actionMode.finish();
 		}
-		SharedPreferences.Editor editor = m_app.m_prefs.edit();
+		SharedPreferences.Editor editor = m_app.mPrefs.edit();
 		Log.v(TAG, "Storing sort in prefs: " + m_sorts);
 		editor.putString("m_sorts", Util.join(m_sorts, "\n"));
 		editor.putStringSet("m_contexts", new HashSet<String>(m_contexts));
@@ -551,10 +516,10 @@ public class Simpletask extends ListActivity implements
 
 	private void tagTasks(final List<Task> tasks) {
 		List<String> strings = new ArrayList<String>();
-		for (String s: taskBag.getContexts(false)) {
+		for (String s: mTaskBag.getContexts(false)) {
 			strings.add("@"+s);
 		}
-		for (String s: taskBag.getProjects(false)) {
+		for (String s: mTaskBag.getProjects(false)) {
 			strings.add("+"+s);
 		}
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -570,12 +535,7 @@ public class Simpletask extends ListActivity implements
 						task.append(items[which]);
 					}
 				}
-				taskBag.store();
-				m_app.updateWidgets();
-				m_app.setNeedToPush(true);
-				// We have change the data, views should refresh
-				m_adapter.setFilteredTasks(false);
-				sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
+				mTaskBag.store();
 			}
 		});
 		builder.show();
@@ -598,11 +558,8 @@ public class Simpletask extends ListActivity implements
 						task.setPriority(Priority.toPriority(prioArr[which]));
 					}
 				}
-				taskBag.store();
-				m_app.updateWidgets();
-				m_app.setNeedToPush(true);
-				// We have change the data, views should refresh
-				m_adapter.setFilteredTasks(false);
+				mTaskBag.store();
+
 				sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 			}
 		});
@@ -616,15 +573,7 @@ public class Simpletask extends ListActivity implements
 				t.markComplete(new Date());
 			}
 		}
-		if (m_app.isAutoArchive()) {
-			taskBag.archive();
-		}
-		taskBag.store();
-		m_app.updateWidgets();
-		m_app.setNeedToPush(true);
-		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
-		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
+		mTaskBag.store();
 	}
 
 	private void undoCompleteTasks(List<Task> tasks) {
@@ -633,12 +582,7 @@ public class Simpletask extends ListActivity implements
 				t.markIncomplete();
 			}
 		}
-		taskBag.store();
-		m_app.updateWidgets();
-		m_app.setNeedToPush(true);
-		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
-		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
+		mTaskBag.store();
 	}
 
 	private void deferTasks(List<Task> tasks) {
@@ -663,13 +607,7 @@ public class Simpletask extends ListActivity implements
 								t.setPrependedDate(selected);
 							}
 						}
-						m_adapter.setFilteredTasks(false);
-						taskBag.store();
-						m_app.updateWidgets();
-						m_app.setNeedToPush(true);
-						// We have change the data, views should refresh
-						sendBroadcast(new Intent(
-								Constants.INTENT_START_SYNC_TO_REMOTE));
+						mTaskBag.store();
 					}
 				});
 		d.show();
@@ -678,44 +616,10 @@ public class Simpletask extends ListActivity implements
 	private void deleteTasks(List<Task> tasks) {
 		for (Task t : tasks) {
 			if (t != null) {
-				taskBag.delete(t);
+				mTaskBag.delete(t);
 			}
 		}
-		m_adapter.setFilteredTasks(false);
-		taskBag.store();
-		m_app.updateWidgets();
-		m_app.setNeedToPush(true);
-		// We have change the data, views should refresh
-		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
-	}
-
-	private void archiveTasks() {
-		new AsyncTask<Void, Void, Boolean>() {
-
-			@Override
-			protected Boolean doInBackground(Void... params) {
-				try {
-					taskBag.archive();
-					return true;
-				} catch (Exception e) {
-					Log.e(TAG, e.getMessage(), e);
-					return false;
-				}
-			}
-
-			@Override
-			protected void onPostExecute(Boolean result) {
-				if (result) {
-					Util.showToastLong(Simpletask.this,
-							"Archived completed tasks");
-					sendBroadcast(new Intent(
-							Constants.INTENT_START_SYNC_TO_REMOTE));
-				} else {
-					Util.showToastLong(Simpletask.this,
-							"Could not archive tasks");
-				}
-			}
-		}.execute();
+		mTaskBag.store();
 	}
 
 	@Override
@@ -736,9 +640,6 @@ public class Simpletask extends ListActivity implements
 		case R.id.share:
 			shareTodoList();
 			break;
-		case R.id.sync:
-			syncClient(false);
-			break;
 		default:
 			return super.onMenuItemSelected(featureId, item);
 		}
@@ -757,7 +658,7 @@ public class Simpletask extends ListActivity implements
 		if (actionMode!=null) {
 			actionMode.finish();
 		}
-		m_adapter.setFilteredTasks(false);
+		m_adapter.setFilteredTasks();
 
 	}
 	
@@ -777,53 +678,13 @@ public class Simpletask extends ListActivity implements
 		startActivityForResult(settingsActivity, REQUEST_PREFERENCES);
 	}
 
-	/**
-	 * Called when we can't sync due to a merge conflict. Prompts the user to
-	 * force an upload or download.
-	 */
-	private void handleSyncConflict() {
-		m_app.m_pushing = false;
-		m_app.m_pulling = false;
-		showDialog(SYNC_CONFLICT_DIALOG);
-	}
-
-	/**
-	 * Sync with remote client.
-	 * <p/>
-	 * <ul>
-	 * <li>Will Pull in auto mode.
-	 * <li>Will ask "push or pull" in manual mode.
-	 * </ul>
-	 * 
-	 * @param force
-	 *            true to force pull
-	 */
-	private void syncClient(boolean force) {
-		if (isManualMode()) {
-			Log.v(TAG,
-					"Manual mode, choice forced; prompt user to ask which way to sync");
-			showDialog(SYNC_CHOICE_DIALOG);
-		} else {
-			Log.i(TAG, "auto sync mode; should automatically sync; force = "
-					+ force);
-			Intent i = new Intent(Constants.INTENT_START_SYNC_WITH_REMOTE);
-			if (force) {
-				i.putExtra(Constants.EXTRA_FORCE_SYNC, true);
-			}
-			sendBroadcast(i);
-		}
-	}
-
-	private boolean isManualMode() {
-		return m_app.isManualMode();
-	}
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		final Dialog d;
 
 		if (R.id.priority == id) {
-			final List<Priority> pStrs = taskBag.getPriorities();
+			final List<Priority> pStrs = mTaskBag.getPriorities();
 			int size = pStrs.size();
 			boolean[] values = new boolean[size];
 			for (Priority prio : m_prios) {
@@ -932,7 +793,7 @@ public class Simpletask extends ListActivity implements
 			finish();
 		} else { // otherwise just clear the filter in the current activity
 			clearFilter();
-			m_adapter.setFilteredTasks(false);
+			m_adapter.setFilteredTasks();
 		}
 	}
 
@@ -985,19 +846,12 @@ public class Simpletask extends ListActivity implements
 			this.m_inflater = inflater;
 		}
 
-		void setFilteredTasks(boolean reload) {
-			Log.v(TAG, "setFilteredTasks called, reload: " + reload);
-			if (reload) {
-				taskBag.reload();
-				// Update lists in side drawer
-				// Set the adapter for the list view
-				updateDrawerList();
-
-			}
+		void setFilteredTasks() {
+			Log.v(TAG, "setFilteredTasks called");
 
 			AndFilter filter = new AndFilter();
 			visibleTasks.clear();
-			for (Task t : taskBag.getTasks()) {
+			for (Task t : mTaskBag.getTasks()) {
 				if (filter.apply(t)) {
 					visibleTasks.add(t);
 				}
@@ -1113,8 +967,6 @@ public class Simpletask extends ListActivity implements
 				TextView t = (TextView) convertView
 						.findViewById(R.id.list_header_title);
 				t.setText(headerTitles.get(position));
-				t.setTextSize(m_app.headerFontSize());
-
 			} else {
 				final ViewHolder holder;
 				if (convertView == null) {
@@ -1196,8 +1048,6 @@ public class Simpletask extends ListActivity implements
 						holder.taskage.setVisibility(View.GONE);
 					}
 				}
-				holder.tasktext.setTextSize(m_app.taskTextFontSize());
-				holder.taskage.setTextSize(m_app.taskAgeFontSize());
 			}
 			return convertView;
 		}
@@ -1251,14 +1101,14 @@ public class Simpletask extends ListActivity implements
 				@Override
 				protected void publishResults(CharSequence charSequence,
 						FilterResults filterResults) {
-					setFilteredTasks(false);
+					setFilteredTasks();
 				}
 			};
 		}
 	}
 
 	private void updateDrawerList() {
-		m_lists = taskBag.getContexts(true);
+		m_lists = mTaskBag.getContexts(true);
 		m_drawerList.setAdapter(new ArrayAdapter<String>(this,
 				R.layout.drawer_list_item, m_lists));
 	}
@@ -1266,13 +1116,6 @@ public class Simpletask extends ListActivity implements
 	private static class ViewHolder {
 		private TextView tasktext;
 		private TextView taskage;
-	}
-
-	public void storeKeys(String accessTokenKey, String accessTokenSecret) {
-		Editor editor = m_app.m_prefs.edit();
-		editor.putString(Constants.PREF_ACCESSTOKEN_KEY, accessTokenKey);
-		editor.putString(Constants.PREF_ACCESSTOKEN_SECRET, accessTokenSecret);
-		editor.commit();
 	}
 
 	public void showToast(String string) {
@@ -1283,11 +1126,11 @@ public class Simpletask extends ListActivity implements
 		Intent i = new Intent(this, FilterActivity.class);
 
 		i.putStringArrayListExtra(Constants.EXTRA_PRIORITIES,
-				Priority.inCode(taskBag.getPriorities()));
+				Priority.inCode(mTaskBag.getPriorities()));
 		i.putStringArrayListExtra(Constants.EXTRA_PROJECTS,
-				taskBag.getProjects(true));
+				mTaskBag.getProjects(true));
 		i.putStringArrayListExtra(Constants.EXTRA_CONTEXTS,
-				taskBag.getContexts(true));
+				mTaskBag.getContexts(true));
 
 		i.putStringArrayListExtra(Constants.EXTRA_PRIORITIES_SELECTED,
 				Priority.inCode(m_prios));
@@ -1441,7 +1284,7 @@ public class Simpletask extends ListActivity implements
 				break;
 			}
 			mode.finish();
-			m_adapter.setFilteredTasks(false);
+			m_adapter.setFilteredTasks();
 			return true;
 		}
 
@@ -1468,7 +1311,7 @@ public class Simpletask extends ListActivity implements
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
 			actionMode = null;
-			m_adapter.setFilteredTasks(false);
+			m_adapter.setFilteredTasks();
 			return;
 		}
 	}
@@ -1526,7 +1369,7 @@ public class Simpletask extends ListActivity implements
 
 	@Override
 	public void onRefreshStarted(View view) {
-		syncClient(false);
+		//mTaskBag.reload();
 		
 	}
 }

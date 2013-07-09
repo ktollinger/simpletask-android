@@ -23,25 +23,21 @@
 package nl.mpcjanssen.simpletask;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import nl.mpcjanssen.simpletask.remote.RemoteClient;
+
 import nl.mpcjanssen.todotxtholo.R;
 
 
 public class LoginScreen extends Activity {
 
     final static String TAG = LoginScreen.class.getSimpleName();
+    static final int REQUEST_LINK_TO_DBX = 0;
 
     private TodoApplication m_app;
-    private BroadcastReceiver m_broadcastReceiver;
-    private boolean m_loginStarted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +47,6 @@ public class LoginScreen extends Activity {
 
         m_app = (TodoApplication) getApplication();
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("nl.mpcjanssen.todotxtholo.ACTION_LOGIN");
-        m_broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Intent i = new Intent(context, Simpletask.class);
-                startActivity(i);
-                finish();
-            }
-        };
-        registerReceiver(m_broadcastReceiver, intentFilter);
-
         Button m_LoginButton = (Button) findViewById(R.id.login);
         m_LoginButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -70,64 +54,27 @@ public class LoginScreen extends Activity {
                 startLogin();
             }
         });
-        
-        Button m_offlineButton = (Button) findViewById(R.id.work_offline);
-        m_offlineButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                workOffline();
-            }
-        });
-
-
-        RemoteClient remoteClient = m_app.getRemoteClientManager()
-                .getRemoteClient();
-        if (remoteClient.isAuthenticated()) {
-            switchToTodolist();
-        }
-    }
-
-    private void switchToTodolist() {
-        Intent intent = new Intent(this, Simpletask.class);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (m_loginStarted) {
-            finishLogin();
-        }
-    }
-
-    private void finishLogin() {
-        RemoteClient remoteClient = m_app.getRemoteClientManager()
-                .getRemoteClient();
-        remoteClient.finishLogin();
-        if (remoteClient.isAuthenticated()) {
-            switchToTodolist();
-            sendBroadcast(new Intent(Constants.INTENT_START_SYNC_FROM_REMOTE));
-        }
-        m_loginStarted = false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(m_broadcastReceiver);
-    }
-    
-    void workOffline() {
-        m_app.setManualMode(true);
-        switchToTodolist();
     }
 
     void startLogin() {
-        final RemoteClient client = m_app.getRemoteClientManager()
-                .getRemoteClient();
-        client.startLogin();
-        m_loginStarted = true;
+        m_app.getDbxAcctMgr().startLink((Activity)this, REQUEST_LINK_TO_DBX);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_LINK_TO_DBX) {
+            if (resultCode == Activity.RESULT_OK) {
+                finish();
+            } else {
+                // ... Link failed or was cancelled by the user.
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 }
