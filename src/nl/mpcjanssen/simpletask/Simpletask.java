@@ -236,9 +236,7 @@ public class Simpletask extends ListActivity implements
 	}
 
 	private void handleIntent(Bundle savedInstanceState) {
-		RemoteClient remoteClient = m_app.getRemoteClientManager()
-				.getRemoteClient();
-		if (!remoteClient.isAuthenticated() && !m_app.isManualMode()) {
+		if (!m_app.isLinked() && !m_app.isManualMode()) {
 			startLogin();
 			return;
 		}

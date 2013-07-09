@@ -50,7 +50,6 @@ public class TodoApplication extends Application {
     public SharedPreferences m_prefs;
     public boolean m_pulling = false;
     public boolean m_pushing = false;
-    private RemoteClientManager remoteClientManager;
     private TaskBag taskBag;
     private BroadcastReceiver m_broadcastReceiver;
     private Handler handler = new Handler();
@@ -64,11 +63,10 @@ public class TodoApplication extends Application {
         super.onCreate();
         TodoApplication.appContext = getApplicationContext();
         m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        remoteClientManager = new RemoteClientManager(this, m_prefs);
         TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
                 m_prefs);
         LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
-        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository, remoteClientManager);
+        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository);
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constants.INTENT_SET_MANUAL);
@@ -83,22 +81,6 @@ public class TodoApplication extends Application {
         }
 
         taskBag.reload();
-        // Pull from dropbox every 5 minutes
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-      /* do what you need to do */
-                if (!isManualMode()) {
-                    backgroundPullFromRemote();
-                }
-      /* reschedule next */
-                handler.postDelayed(this, 5 * 60 * 1000);
-                Log.v(TAG, "Pulling from remote");
-            }
-        };
-
-        handler.postDelayed(runnable, 100);
-
     }
 
     @Override
@@ -371,6 +353,10 @@ public class TodoApplication extends Application {
             mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetlv);
             Log.v(TAG, "Updating widget: " + appWidgetId);
         }
+    }
+
+    public boolean isLinked() {
+        return false;
     }
 
     private final class BroadcastReceiverExtension extends BroadcastReceiver {
