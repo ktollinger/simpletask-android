@@ -41,10 +41,11 @@ import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.simpletask.R;
 
 
-public class MainApplication extends Application {
+public class MainApplication extends Application implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final static String TAG = MainApplication.class.getSimpleName();
     public static Context appContext;
     public SharedPreferences m_prefs;
+    public SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
     private TaskBag taskBag;
     private FileObserver m_observer;
 
@@ -57,6 +58,7 @@ public class MainApplication extends Application {
         super.onCreate();
         MainApplication.appContext = getApplicationContext();
         m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        m_prefs.registerOnSharedPreferenceChangeListener(this);
         TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
                 m_prefs);
         LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
@@ -155,6 +157,15 @@ public class MainApplication extends Application {
         for (int appWidgetId : mgr.getAppWidgetIds(new ComponentName(getApplicationContext(), MyAppWidgetProvider.class))) {
             mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetlv);
             Log.v(TAG, "Updating widget: " + appWidgetId);
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        Log.v(TAG, "Preference changed:" + s);
+        if (s.equals(getString(R.string.todo_path_pref_key)) && taskBag != null) {
+            taskBag.reload();
+            updateUI();
         }
     }
 }
