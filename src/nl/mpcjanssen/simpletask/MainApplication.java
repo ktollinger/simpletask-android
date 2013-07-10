@@ -53,36 +53,41 @@ public class MainApplication extends Application implements SharedPreferences.On
         return appContext;
     }
 
+    public void openTodoFile () {
+        TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
+                m_prefs);
+        LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
+        m_observer = new FileObserver(localTaskRepository.get_todo_file().getParent(),
+                FileObserver.ALL_EVENTS) {
+
+            @Override
+            public void onEvent(int event, String path) {
+                if (path!=null && path.equals("todo.txt") ) {
+                    Log.v(TAG, path + " event: " + event);
+                    if( event == FileObserver.CLOSE_WRITE ||
+                            event == FileObserver.MOVED_TO) {
+                        Log.v(TAG, path + " modified reloading taskbag");
+                        taskBag.reload();
+                        updateUI();
+                    }
+                }
+            }
+        };
+        m_observer.startWatching();
+        localTaskRepository.setFileObserver(m_observer);
+        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository);
+
+        taskBag.reload();
+
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         MainApplication.appContext = getApplicationContext();
         m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
         m_prefs.registerOnSharedPreferenceChangeListener(this);
-        TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
-                m_prefs);
-        LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
-        m_observer = new FileObserver(localTaskRepository.get_todo_file().getParent(),
-        				FileObserver.ALL_EVENTS) {
-
-			@Override
-			public void onEvent(int event, String path) {
-				if (path!=null && path.equals("todo.txt") ) {
-                    Log.v(TAG, path + " event: " + event);
-                    if( event == FileObserver.CLOSE_WRITE ||
-                        event == FileObserver.MOVED_TO) {
-					    Log.v(TAG, path + " modified reloading taskbag");
-					    taskBag.reload();
-					    updateUI();
-                    }
-				}
-			}
-		};
-        m_observer.startWatching();
-        localTaskRepository.setFileObserver(m_observer);
-        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository);
-
-        taskBag.reload();
+        openTodoFile();
     }
 
     public TaskBag getTaskBag() {
@@ -163,8 +168,8 @@ public class MainApplication extends Application implements SharedPreferences.On
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         Log.v(TAG, "Preference changed:" + s);
-        if (s.equals(getString(R.string.todo_path_pref_key)) && taskBag != null) {
-            taskBag.reload();
+        if (s.equals(getString(R.string.todo_path_pref_key))) {
+            openTodoFile();
             updateUI();
         }
     }
