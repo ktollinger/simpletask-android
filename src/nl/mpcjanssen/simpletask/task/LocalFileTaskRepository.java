@@ -49,7 +49,6 @@ public class LocalFileTaskRepository {
         return TODO_TXT_FILE;
     }
 
-    File DONE_TXT_FILE;
     private final TaskBag.Preferences preferences;
 
     public void setFileObserver (FileObserver observer) {
@@ -59,16 +58,15 @@ public class LocalFileTaskRepository {
     public LocalFileTaskRepository(TaskBag.Preferences m_prefs) {
         this.preferences = m_prefs;
         this.mFileObserver = null;
-        TODO_TXT_FILE = new File( m_prefs.todoFolder() , "todo.txt");
-        DONE_TXT_FILE = new File( m_prefs.todoFolder(), "todo.txt");
+        String todoPath = m_prefs.todoPath();
+        if (todoPath == null) {
+        	return;
+        }
+        TODO_TXT_FILE = new File( m_prefs.todoPath());
         try {
             if (!TODO_TXT_FILE.exists()) {
                 Util.createParentDirectory(TODO_TXT_FILE);
                 TODO_TXT_FILE.createNewFile();
-            }
-            if (!DONE_TXT_FILE.exists()) {
-                Util.createParentDirectory(DONE_TXT_FILE);
-                DONE_TXT_FILE.createNewFile();
             }
         } catch (IOException e) {
             Log.e (TAG, "Error initializing LocalFile " + e);
@@ -102,7 +100,7 @@ public class LocalFileTaskRepository {
         }
     }
 
-    public void archive(ArrayList<Task> tasks) {
+    public void archive(ArrayList<Task> tasks, String pathValue) {
         boolean windowsLineBreaks = preferences.isUseWindowsLineBreaksEnabled();
 
         ArrayList<Task> completedTasks = new ArrayList<Task>(tasks.size());
@@ -117,11 +115,12 @@ public class LocalFileTaskRepository {
         }
 
         // append completed tasks to done.txt
-        TaskIo.writeToFile(completedTasks, DONE_TXT_FILE, true,
+        File archiveFile = new File(pathValue);
+        TaskIo.writeToFile(completedTasks, archiveFile, true,
                 windowsLineBreaks);
 
         // write incomplete tasks back to todo.txt
-        TaskIo.writeToFile(incompleteTasks, TODO_TXT_FILE, false,
-                windowsLineBreaks);
+         TaskIo.writeToFile(incompleteTasks, TODO_TXT_FILE, false,
+               windowsLineBreaks);
     }
 }

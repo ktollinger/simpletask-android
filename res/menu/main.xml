@@ -55,4 +55,8 @@ You should have received a copy of the GNU General Public License along with Tod
             android:title="@string/archive_now"
             android:showAsAction="never"
             android:id="@+id/archive"/>
+    <item
+            android:title="@string/open"
+            android:showAsAction="never"
+            android:id="@+id/open"/>
 </menu>

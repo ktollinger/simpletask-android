@@ -105,11 +105,8 @@ public class Preferences extends PreferenceActivity {
             oiBrowser.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    Intent intent = new Intent("org.openintents.action.PICK_DIRECTORY");
-                    Uri.Builder uriBuilder = new Uri.Builder();
-                    uriBuilder.scheme("file");
-                    uriBuilder.path(pathValue);
-                    intent.setData(uriBuilder.build());
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("text/plain");
                     if(intent.resolveActivity(getActivity().getPackageManager()) != null) {
                         startActivityForResult(intent, 0);
                     } else {

@@ -85,6 +85,9 @@ class AppWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFacto
 
 	void setFilteredTasks(boolean reload) {
 		Log.v(TAG, "setFilteredTasks called, reload: " + reload);
+		if (taskBag == null) {
+			return;
+		}
 		if (reload) {
 			taskBag.reload();
 		}

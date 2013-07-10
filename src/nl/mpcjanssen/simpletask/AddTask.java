@@ -129,7 +129,11 @@ public class AddTask extends Activity {
 
         m_app = (MainApplication) getApplication();
         taskBag = m_app.getTaskBag();
-
+        if (taskBag==null) {
+        	m_app.showToast(R.string.no_file_loaded);
+            finish();
+        }
+ 
         final Intent intent = getIntent();
         final String action = intent.getAction();
         // create shortcut and exit

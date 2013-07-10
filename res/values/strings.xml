@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with Tod
 <!--suppress ALL -->
 <resources>
     <string name="archive_now">Archive now</string>
+    <string name="open">Open todo file</string>
+    <string name="no_file_loaded">No todo file open!</string>
     <string name="app_label">Simpletask</string>
     <string name="drawer_open">Switch List</string>
     <string name="save_task">Save task</string>
@@ -59,6 +61,7 @@ You should have received a copy of the GNU General Public License along with Tod
         start with an @ sign, like @home\n
         A task can include any number of tags or lists.
     </string>
+    <string name="select_todo_file">Select the todo.txt file</string>
 
     <!-- preferences -->
 

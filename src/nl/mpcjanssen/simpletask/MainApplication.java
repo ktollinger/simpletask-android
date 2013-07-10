@@ -54,10 +54,16 @@ public class MainApplication extends Application implements SharedPreferences.On
     }
 
     public void openTodoFile () {
+
+    	if (todoFilePath()==null) {
+    		return;
+    	}    
         TaskBag.Preferences taskBagPreferences = new TaskBag.Preferences(
                 m_prefs);
         LocalFileTaskRepository localTaskRepository = new LocalFileTaskRepository(taskBagPreferences);
-        m_observer = new FileObserver(localTaskRepository.get_todo_file().getParent(),
+        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository);
+        taskBag.reload();
+        m_observer = new FileObserver(localTaskRepository.get_todo_file().getPath(),
                 FileObserver.ALL_EVENTS) {
 
             @Override
@@ -75,9 +81,7 @@ public class MainApplication extends Application implements SharedPreferences.On
         };
         m_observer.startWatching();
         localTaskRepository.setFileObserver(m_observer);
-        this.taskBag = new TaskBag(taskBagPreferences, localTaskRepository);
 
-        taskBag.reload();
 
     }
 
@@ -94,10 +98,8 @@ public class MainApplication extends Application implements SharedPreferences.On
         return taskBag;
     }
 
-    public String todoFolder () {
-        File defaultPath = new File(Environment.getExternalStorageDirectory(),
-        "data/nl.mpcjanssen.simpletask/");
-        return m_prefs.getString(getString(R.string.todo_path_pref_key), defaultPath.toString() );
+    public String todoFilePath () {
+        return m_prefs.getString(getString(R.string.todo_path_pref_key), null );
     }
 
     public int fontSizeDelta() {

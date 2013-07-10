@@ -43,7 +43,13 @@ public class FilterActivity extends Activity {
         actionbar = getActionBar();
         actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
+
+        
         TaskBag taskBag = ((MainApplication)getApplication()).getTaskBag();
+        if (taskBag==null) {
+        	Util.showToastLong(this, R.string.no_file_loaded);
+            finish();
+        }
         if (getIntent().getAction()!=null) {
         	asWidgetConfigure = getIntent().getAction().equals(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         }

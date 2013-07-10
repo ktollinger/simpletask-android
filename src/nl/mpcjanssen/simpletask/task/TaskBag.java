@@ -24,7 +24,6 @@ package nl.mpcjanssen.simpletask.task;
 
 import android.content.SharedPreferences;
 import android.os.Environment;
-
 import nl.mpcjanssen.simpletask.R;
 import nl.mpcjanssen.simpletask.Simpletask;
 
@@ -61,9 +60,8 @@ public class TaskBag {
         store(this.tasks);
     }
 
-    public void archive() {
-        localRepository.archive(tasks);
-        reload();
+    public void archive(String pathValue) {
+        localRepository.archive(tasks, pathValue);
     }
 
     public void reload() {
@@ -140,10 +138,8 @@ public class TaskBag {
             return sharedPreferences.getBoolean("todotxtprependdate", true);
         }
 
-        public String todoFolder() {
-            File defaultPath = new File(Environment.getExternalStorageDirectory(),
-                    "data/nl.mpcjanssen.simpletask/");
-            return sharedPreferences.getString("todopath", defaultPath.toString());
+        public String todoPath() {
+            return sharedPreferences.getString("todopath", null);
         }
     }
 }

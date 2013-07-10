@@ -36,6 +36,7 @@ import android.provider.CalendarContract.Events;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.text.SpannableString;
+import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
@@ -56,6 +57,9 @@ public class Simpletask extends ListActivity  {
     final static String TAG = Simpletask.class.getSimpleName();
     private final static int REQUEST_FILTER = 1;
     private final static int REQUEST_PREFERENCES = 2;
+    private final static int REQUEST_TODOFILE = 3;
+    private final static int REQUEST_ARCHIVE = 4;    
+    private final static int REQUEST_INSTALL = 5;
 
     private TaskBag taskBag;
     ProgressDialog m_ProgressDialog = null;
@@ -100,7 +104,7 @@ public class Simpletask extends ListActivity  {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         // Sync the toggle state after onRestoreInstanceState has occurred.
-        m_drawerToggle.syncState();
+        if (m_drawerLayout !=null)  m_drawerToggle.syncState() ;
     }
 
     @Override
@@ -124,11 +128,22 @@ public class Simpletask extends ListActivity  {
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent data) {
+    	if (resultCode!=RESULT_OK) {
+    		return;
+    	}
         if (requestCode == REQUEST_FILTER) {
-            if (resultCode == RESULT_OK) {
-                setIntent(data);
-                handleIntent(null);
-            }
+            setIntent(data);
+            handleIntent(null);
+        } else if (requestCode == REQUEST_TODOFILE) {
+            String pathValue = data.getData().getPath();
+            Log.v(TAG, "" + data.getData().getPath());           
+            SharedPreferences.Editor edit = m_app.m_prefs.edit();
+            edit.putString(getString(R.string.todo_path_pref_key), pathValue);
+            edit.commit();
+        } else if (requestCode == REQUEST_ARCHIVE) {
+            String pathValue = data.getData().getPath();
+            Log.v(TAG, "" + data.getData().getPath());           
+            taskBag.archive(pathValue);
         }
     }
 
@@ -153,7 +168,26 @@ public class Simpletask extends ListActivity  {
         };
         registerReceiver(m_broadcastReceiver, intentFilter);
 
+        
+        if (m_app.todoFilePath()==null) {
+        	// No file open
+        	browseForFile(REQUEST_TODOFILE);
+        	return;
+        }
         handleIntent(savedInstanceState);
+    }
+    
+    private void browseForFile(int request_mode) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, request_mode);
+        } else {
+            intent = new Intent();
+            intent.setData(Uri.parse("market://details?id=org.openintents.filemanager"));
+            startActivityForResult(intent, REQUEST_INSTALL);
+        }
     }
 
     private void handleIntent(Bundle savedInstanceState) {
@@ -161,6 +195,9 @@ public class Simpletask extends ListActivity  {
         setContentView(R.layout.main);
 
         taskBag = m_app.getTaskBag();
+        
+        
+        getActionBar().setTitle(m_app.todoFilePath());
 
         m_lists = taskBag.getContexts(true);
         m_drawerList = (ListView) findViewById(R.id.left_drawer);
@@ -366,6 +403,8 @@ public class Simpletask extends ListActivity  {
     protected void onRestart() {
         super.onRestart();
         Log.v(TAG, "onRestart: " + getIntent().getExtras());
+        m_app.openTodoFile();
+        taskBag = m_app.getTaskBag();
         handleIntent(null);
     }
 
@@ -549,16 +588,22 @@ public class Simpletask extends ListActivity  {
                 shareTodoList();
                 break;
             case R.id.archive:
-                taskBag.archive();
-                m_adapter.setFilteredTasks(true);
+            	archiveToFile();
                 break;
+            case R.id.open:
+            	browseForFile(REQUEST_TODOFILE);
+            	break;
             default:
                 return super.onMenuItemSelected(featureId, item);
         }
         return true;
     }
 
-    private void changeList(String listName) {
+    private void archiveToFile() {
+       browseForFile(REQUEST_ARCHIVE);		
+	}
+
+	private void changeList(String listName) {
                  clearFilter(true);
                  m_contexts.add(listName);
                  m_adapter.setFilteredTasks(false);
