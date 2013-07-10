@@ -5,4 +5,6 @@
     <string name="prepend_date_pref_key">todotxtprependdate</string>
     <string name="line_breaks_pref_key">linebreakspref</string>
     <string name="font_size_delta_pref_key">fontsizedelta</string>
+    <string name="todo_path_pref_key">todopath</string>
+    <string name="oibrowse_pref_key">oibrowse</string>
 </resources>

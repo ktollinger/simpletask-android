@@ -22,20 +22,28 @@
  */
 package nl.mpcjanssen.simpletask;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.util.Log;
+
 import nl.mpcjanssen.simpletask.util.Util;
 import nl.mpcjanssen.simpletask.R;
 
+import java.io.File;
 import java.util.List;
 
 public class Preferences extends PreferenceActivity {
@@ -65,11 +73,53 @@ public class Preferences extends PreferenceActivity {
 	
 	public static class TodoTxtPrefFragment extends PreferenceFragment
 	{
-		@Override
+        String pathValue ;
+        EditTextPreference path;
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode==0 && resultCode == RESULT_OK) {
+                pathValue = data.getData().getPath();
+                Log.v(TAG, "" + data.getData().getPath());
+                SharedPreferences.Editor edit = getPreferenceManager().getSharedPreferences().edit();
+                edit.putString(getString(R.string.todo_path_pref_key), pathValue);
+                edit.commit();
+                path.setText(pathValue);
+            }
+        }
+
+        @Override
 		public void onCreate(final Bundle savedInstanceState)
 		{
 			super.onCreate(savedInstanceState);
 			addPreferencesFromResource(R.xml.todotxt_preferences);
+            File defaultPath = new File(Environment.getExternalStorageDirectory(),
+                    "data/nl.mpcjanssen.simpletask/");
+            path = (EditTextPreference) findPreference(getString(R.string.todo_path_pref_key));
+            pathValue = getPreferenceManager().getSharedPreferences().getString(getString(R.string.todo_path_pref_key),
+                    defaultPath.toString());
+            path.setText(pathValue);
+
+            Preference oiBrowser = findPreference(getString(R.string.oibrowse_pref_key));
+            oiBrowser.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    Intent intent = new Intent("org.openintents.action.PICK_DIRECTORY");
+                    Uri.Builder uriBuilder = new Uri.Builder();
+                    uriBuilder.scheme("file");
+                    uriBuilder.path(pathValue);
+                    intent.setData(uriBuilder.build());
+                    if(intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                        startActivityForResult(intent, 0);
+                    } else {
+                        intent = new Intent();
+                        intent.setData(Uri.parse("market://details?id=org.openintents.filemanager"));
+                        startActivityForResult(intent, 1);
+                    }
+                    return true;
+                }
+            });
 		}
 	}	
 

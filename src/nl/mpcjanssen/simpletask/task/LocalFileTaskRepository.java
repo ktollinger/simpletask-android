@@ -59,12 +59,8 @@ public class LocalFileTaskRepository {
     public LocalFileTaskRepository(TaskBag.Preferences m_prefs) {
         this.preferences = m_prefs;
         this.mFileObserver = null;
-        TODO_TXT_FILE = new File(
-                Environment.getExternalStorageDirectory(),
-                "data/nl.mpcjanssen.simpletask/todo.txt");
-        DONE_TXT_FILE = new File(
-                Environment.getExternalStorageDirectory(),
-                "data/nl.mpcjanssen.simpletask/todo.txt");
+        TODO_TXT_FILE = new File( m_prefs.todoFolder() , "todo.txt");
+        DONE_TXT_FILE = new File( m_prefs.todoFolder(), "todo.txt");
         try {
             if (!TODO_TXT_FILE.exists()) {
                 Util.createParentDirectory(TODO_TXT_FILE);

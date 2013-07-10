@@ -23,8 +23,12 @@
 package nl.mpcjanssen.simpletask.task;
 
 import android.content.SharedPreferences;
+import android.os.Environment;
+
+import nl.mpcjanssen.simpletask.R;
 import nl.mpcjanssen.simpletask.Simpletask;
 
+import java.io.File;
 import java.util.*;
 
 
@@ -134,6 +138,12 @@ public class TaskBag {
 
         public boolean isPrependDateEnabled() {
             return sharedPreferences.getBoolean("todotxtprependdate", true);
+        }
+
+        public String todoFolder() {
+            File defaultPath = new File(Environment.getExternalStorageDirectory(),
+                    "data/nl.mpcjanssen.simpletask/");
+            return sharedPreferences.getString("todopath", defaultPath.toString());
         }
     }
 }

@@ -76,6 +76,12 @@ You should have received a copy of the GNU General Public License along with Tod
     <string name="font_size_delta_pref_summary">Change the font size in units of sp.
         Use negative values to decrease the font size</string>
 
+    <string name="todo_path_pref_title">Set todo.txt folder</string>
+    <string name="todo_path_pref_summary">Change the folder where todo.txt and done.txt are stored</string>
+
+    <string name="todo_path_browse_pref_title">Browse for todo.txt folder</string>
+    <string name="todo_path_browse_pref_summary">Browse for the todo.txt folder. Requires OI File Manager.</string>
+
     <string name="about_settings_header">About</string>
     <string name="about_settings_summary">Application information</string>
     <string name="visit_website_title">Go to the website</string>

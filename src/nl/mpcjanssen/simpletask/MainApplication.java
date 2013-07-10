@@ -28,9 +28,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.os.FileObserver;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import java.io.File;
+
 import nl.mpcjanssen.simpletask.task.LocalFileTaskRepository;
 import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.util.Util;
@@ -81,6 +85,12 @@ public class MainApplication extends Application {
 
     public TaskBag getTaskBag() {
         return taskBag;
+    }
+
+    public String todoFolder () {
+        File defaultPath = new File(Environment.getExternalStorageDirectory(),
+        "data/nl.mpcjanssen.simpletask/");
+        return m_prefs.getString(getString(R.string.todo_path_pref_key), defaultPath.toString() );
     }
 
     public int fontSizeDelta() {
