@@ -195,6 +195,7 @@ public class Simpletask extends ListActivity  {
         setContentView(R.layout.main);
 
         taskBag = m_app.getTaskBag();
+        if (taskBag==null) return;
         
         
         getActionBar().setTitle(m_app.todoFilePath());
