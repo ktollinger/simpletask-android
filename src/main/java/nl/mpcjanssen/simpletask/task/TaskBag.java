@@ -121,7 +121,7 @@ public class TaskBag {
     public void updateTask(Task task, String input) {
         int index = tasks.indexOf(task);
         if (index!=-1) {
-            tasks.get(index).init(input, null);
+            tasks.get(index).update(input);
             store();
         }
     }

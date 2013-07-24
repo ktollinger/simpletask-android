@@ -41,8 +41,7 @@ public class TaskTest extends TestCase {
     }
     public void testCompletionWithPrependDate() {
         String rawText = "Test";
-        Task t = new Task(0, rawText);
-        t.init(rawText, new Date());
+        Task t = new Task(0, rawText, new Date());
         rawText = t.inFileFormat();
         Date completionDate = new Date();
         t.markComplete(completionDate);
@@ -55,7 +54,7 @@ public class TaskTest extends TestCase {
     public void testCompletionWithPriority() {
         String rawText = "(A) Test";
         Task t = new Task(0, rawText);
-        t.init(rawText, null);
+        t.update(rawText);
         assertEquals(t.getPriority(), Priority.A);
         Date completionDate = new Date();
         t.markComplete(completionDate);

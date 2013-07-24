@@ -86,7 +86,7 @@ public class Task implements Serializable, Comparable<Task> {
         this.init(rawText, null);
     }
 
-    public void init(String rawText, Date defaultPrependedDate) {
+    private void init(String rawText, Date defaultPrependedDate) {
         TextSplitter splitter = TextSplitter.getInstance();
         TextSplitter.SplitResult splitResult = splitter.split(rawText);
         this.priority = splitResult.priority;
@@ -214,7 +214,7 @@ public class Task implements Serializable, Comparable<Task> {
         if(isCompleted()) {
             rawText = rawText.replaceFirst("^"+COMPLETED, "");
             rawText = rawText.replaceFirst("^"  + DATE_REGEXP + "\\s","");
-            init(rawText,null);
+            this.init(rawText,null);
         }
     }
 
