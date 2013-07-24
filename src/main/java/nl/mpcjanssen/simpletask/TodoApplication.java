@@ -387,7 +387,6 @@ public class TodoApplication extends Application {
                 showToast("Synchronizing Failed");
                 m_pulling = false;
                 m_pushing = false;
-                updateUI();
             }
         }
     }

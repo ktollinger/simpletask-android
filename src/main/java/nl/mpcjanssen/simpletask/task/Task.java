@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings("serial")
 public class Task implements Serializable, Comparable<Task> {
 
-    private static final long serialVersionUID = 0L;
+    private static final long serialVersionUID = 1L;
 
     private static final Pattern TAG_PATTERN = Pattern
             .compile("^\\S*[\\p{javaLetterOrDigit}_]$");
@@ -51,15 +51,11 @@ public class Task implements Serializable, Comparable<Task> {
             .compile("\\st:(\\d{4}-\\d{2}-\\d{2})");
 
     private static final String COMPLETED = "x ";
-    private String originalText;
-    private final Priority originalPriority;
+    private static final String DATE_REGEXP = "(\\d{4}-\\d{2}-\\d{2})";
 
     private long id;
     private Priority priority;
-    private boolean deleted = false;
-    private boolean completed = false;
     private String text;
-    private String completionDate;
     private String prependedDate;
     private String relativeAge = "";
     private List<String> contexts;
@@ -70,6 +66,7 @@ public class Task implements Serializable, Comparable<Task> {
     private Date dueDate;
     private SimpleDateFormat formatter;
     private Date thresholdDate;
+    private String rawText;
 
 
     public static boolean validTag(String tag) {
@@ -79,8 +76,6 @@ public class Task implements Serializable, Comparable<Task> {
     public Task(long id, String rawText, Date defaultPrependedDate) {
         this.id = id;
         this.init(rawText, defaultPrependedDate);
-        this.originalPriority = priority;
-        this.originalText = text;
     }
 
     public Task(long id, String rawText) {
@@ -95,22 +90,22 @@ public class Task implements Serializable, Comparable<Task> {
         TextSplitter splitter = TextSplitter.getInstance();
         TextSplitter.SplitResult splitResult = splitter.split(rawText);
         this.priority = splitResult.priority;
+
+        // Text without prepended date
         this.text = splitResult.text;
         this.prependedDate = splitResult.prependedDate;
-        this.completed = splitResult.completed;
-        this.completionDate = splitResult.completedDate;
-        this.originalText = rawText;
+        this.rawText = rawText;
 
         this.phoneNumbers = PhoneNumberParser.getInstance().parse(text);
         this.mailAddresses = MailAddressParser.getInstance().parse(text);
         this.links = LinkParser.getInstance().parse(text);
         this.contexts = ContextParser.getInstance().parse(text);
         this.projects = ProjectParser.getInstance().parse(text);
-        this.deleted = Strings.isEmptyOrNull(text);
         this.formatter = new SimpleDateFormat(Constants.DATE_FORMAT, Locale.US);
         if (defaultPrependedDate != null
                 && Strings.isEmptyOrNull(this.prependedDate)) {
             this.prependedDate = formatter.format(defaultPrependedDate);
+            this.rawText = prependedDate + " " + rawText;
         }
 
         if (!Strings.isEmptyOrNull(this.prependedDate)) {
@@ -141,20 +136,12 @@ public class Task implements Serializable, Comparable<Task> {
         }
     }
 
-    public Priority getOriginalPriority() {
-        return originalPriority;
-    }
-
     public Date getDueDate() {
         return this.dueDate;
     }
 
     public Date getThresholdDate() {
         return this.thresholdDate;
-    }
-
-    public String getOriginalText() {
-        return originalText;
     }
 
     public String getText() {
@@ -165,8 +152,16 @@ public class Task implements Serializable, Comparable<Task> {
         return id;
     }
 
-    public void setPriority(Priority priority) {
-        this.priority = priority;
+    public void setPriority(Priority newPriority) {
+        if (newPriority==Priority.NONE) {
+            rawText = rawText.replaceFirst("^\\([A-Z]\\)\\s", "");
+        } else if (this.priority == Priority.NONE) {
+            rawText = newPriority.inFileFormat() + " " + rawText;
+        } else {
+            rawText = rawText.replaceFirst("^\\([A-Z]\\)", newPriority.inFileFormat());
+        }
+        priority = newPriority;
+        init(rawText,null);
     }
 
     public Priority getPriority() {
@@ -181,22 +176,6 @@ public class Task implements Serializable, Comparable<Task> {
         return projects;
     }
 
-    public void setPrependedDate(String date) {
-        this.prependedDate = date;
-        try {
-            Date d = formatter.parse(this.prependedDate);
-            this.relativeAge = RelativeDate.getRelativeDate(d);
-        } catch (ParseException e) {
-            // e.printStackTrace();
-        }
-    }
-
-    public void setPrependedDate(Date dt) {
-        this.prependedDate = formatter.format(dt);
-        this.relativeAge = RelativeDate.getRelativeDate(dt);
-
-    }
-
     public String getPrependedDate() {
         return prependedDate;
     }
@@ -205,12 +184,8 @@ public class Task implements Serializable, Comparable<Task> {
         return relativeAge;
     }
 
-    public boolean isDeleted() {
-        return deleted;
-    }
-
     public boolean isCompleted() {
-        return completed;
+        return rawText.startsWith("x ");
     }
 
     public List<String> getPhoneNumbers() {
@@ -225,40 +200,26 @@ public class Task implements Serializable, Comparable<Task> {
         return links;
     }
 
-    public String getCompletionDate() {
-        return completionDate;
-    }
-
     public void markComplete(Date date) {
-        if (!this.completed) {
-            this.completionDate = formatter.format(date);
-            this.deleted = false;
-            this.completed = true;
+        if (!isCompleted()) {
+            String completionDate = formatter.format(date);
+            setPriority(Priority.NONE);
+            rawText = COMPLETED + completionDate + " " + rawText;
+            init(rawText,null);
         }
+
     }
 
     public void markIncomplete() {
-        if (this.completed) {
-            this.completionDate = "";
-            this.completed = false;
+        if(isCompleted()) {
+            rawText = rawText.replaceFirst("^"+COMPLETED, "");
+            rawText = rawText.replaceFirst("^"  + DATE_REGEXP + "\\s","");
+            init(rawText,null);
         }
     }
 
     public void delete() {
         this.update("");
-    }
-
-    // TODO need a better solution (TaskFormatter?) here
-    public String inScreenFormat() {
-        StringBuilder sb = new StringBuilder();
-        if (this.completed) {
-            sb.append(COMPLETED).append(this.completionDate).append(" ");
-        }
-        if (this.getPriority()!=Priority.NONE) {
-            sb.append(this.getPriority().inFileFormat()).append(" ");
-        }
-        sb.append(this.text);
-        return sb.toString();
     }
 
     public boolean inFuture() {
@@ -272,25 +233,7 @@ public class Task implements Serializable, Comparable<Task> {
     }
 
     public String inFileFormat() {
-        StringBuilder sb = new StringBuilder();
-        if (this.completed) {
-            sb.append(COMPLETED);
-            if(!Strings.isEmptyOrNull(this.completionDate)){
-                sb.append(this.completionDate).append(" ");
-            }
-            if (!Strings.isEmptyOrNull(this.prependedDate)) {
-                sb.append(this.prependedDate).append(" ");
-            }
-        } else {
-            if (priority != Priority.NONE) {
-                sb.append(priority.inFileFormat()).append(" ");
-            }
-            if (!Strings.isEmptyOrNull(this.prependedDate)) {
-                sb.append(this.prependedDate).append(" ");
-            }
-        }
-        sb.append(this.text);
-        return sb.toString();
+        return rawText;
     }
 
     public void copyInto(Task destination) {
@@ -309,7 +252,7 @@ public class Task implements Serializable, Comparable<Task> {
         Task other = (Task) obj;
         if (id != other.id)
             return false;
-        return (this.inFileFormat().equals(other.inFileFormat()));
+        return (this.rawText.equals(other.rawText));
     }
 
     @Override
@@ -317,22 +260,8 @@ public class Task implements Serializable, Comparable<Task> {
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + (completed ? 1231 : 1237);
-        result = prime * result
-                + ((completionDate == null) ? 0 : completionDate.hashCode());
-        result = prime * result
-                + ((contexts == null) ? 0 : contexts.hashCode());
-        result = prime * result + (deleted ? 1231 : 1237);
         result = prime * result + (int) (id ^ (id >>> 32));
-        result = prime * result
-                + ((prependedDate == null) ? 0 : prependedDate.hashCode());
-        result = prime * result
-                + ((priority == null) ? 0 : priority.hashCode());
-        result = prime * result
-                + ((projects == null) ? 0 : projects.hashCode());
-        result = prime * result
-                + ((relativeAge == null) ? 0 : relativeAge.hashCode());
-        result = prime * result + ((text == null) ? 0 : text.hashCode());
+        result = prime * result + ((rawText == null) ? 0 : rawText.hashCode());
         return result;
     }
 
@@ -357,7 +286,7 @@ public class Task implements Serializable, Comparable<Task> {
     }
 
 	public void append(String string) {
-		this.init(inFileFormat() + " " + string , null);
+		this.init(rawText + " " + string , null);
 	}
 
     public void removeTag(String tag) {
@@ -415,5 +344,13 @@ public class Task implements Serializable, Comparable<Task> {
     public void deferToDate(boolean isThresholdDate, Date deferDate) {
         String deferString = formatter.format(deferDate);
         deferToDate(isThresholdDate, deferString);
+    }
+
+    public String inScreenFormat() {
+        String result = inFileFormat();
+        if (!Strings.isEmptyOrNull(getPrependedDate())) {
+            result = result.replaceFirst(getPrependedDate()+"\\s", "");
+        }
+        return result;
     }
 }
