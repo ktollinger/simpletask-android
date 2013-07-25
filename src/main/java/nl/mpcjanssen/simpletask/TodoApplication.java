@@ -353,7 +353,7 @@ public class TodoApplication extends Application {
      * if it is visible (by broadcasting an intent). All widgets will be updated as well.
      * This method should be called whenever the TaskBag changes.
      */
-    private void updateUI() {
+    public void updateUI() {
         sendBroadcast(new Intent(Constants.INTENT_UPDATE_UI));
         updateWidgets();
     }

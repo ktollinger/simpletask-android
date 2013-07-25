@@ -222,6 +222,7 @@ public class Simpletask extends ListActivity implements
 				} else if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_UPDATE_UI)) {
 					m_adapter.setFilteredTasks(false);
+                    m_adapter.notifyDataSetChanged();
 				} else if (intent.getAction().equalsIgnoreCase(
 						Constants.INTENT_SYNC_CONFLICT)) {
 					handleSyncConflict();
@@ -611,7 +612,7 @@ public class Simpletask extends ListActivity implements
                 m_app.updateWidgets();
                 m_app.setNeedToPush(true);
                 // We have change the data, views should refresh
-                m_adapter.setFilteredTasks(false);
+                m_app.updateUI();
                 sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 
             }
@@ -641,10 +642,9 @@ public class Simpletask extends ListActivity implements
                     }
                 }
                 taskBag.store();
-                m_app.updateWidgets();
-                m_app.setNeedToPush(true);
+
                 // We have change the data, views should refresh
-                m_adapter.setFilteredTasks(false);
+                m_app.updateUI();
                 sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 
             }
@@ -669,10 +669,9 @@ public class Simpletask extends ListActivity implements
 					}
 				}
 				taskBag.store();
-				m_app.updateWidgets();
 				m_app.setNeedToPush(true);
 				// We have change the data, views should refresh
-				m_adapter.setFilteredTasks(false);
+                m_app.updateUI();
 				sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 			}
 		});
@@ -690,10 +689,9 @@ public class Simpletask extends ListActivity implements
 			taskBag.archive();
 		}
 		taskBag.store();
-		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
+        m_app.updateUI();
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 	}
 
@@ -704,10 +702,9 @@ public class Simpletask extends ListActivity implements
 			}
 		}
 		taskBag.store();
-		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
+        m_app.updateUI();
 		sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
 	}
 
@@ -757,11 +754,10 @@ public class Simpletask extends ListActivity implements
                 t.deferToDate(m_app.isDeferThreshold(), selected);
             }
         }
-        m_adapter.setFilteredTasks(false);
         taskBag.store();
-        m_app.updateWidgets();
         m_app.setNeedToPush(true);
         // We have change the data, views should refresh
+        m_app.updateUI();
         sendBroadcast(new Intent(
                 Constants.INTENT_START_SYNC_TO_REMOTE));
     }
@@ -773,11 +769,10 @@ public class Simpletask extends ListActivity implements
                 t.deferToDate(m_app.isDeferThreshold(), selected);
             }
         }
-        m_adapter.setFilteredTasks(false);
         taskBag.store();
-        m_app.updateWidgets();
         m_app.setNeedToPush(true);
         // We have change the data, views should refresh
+        m_app.updateUI();
         sendBroadcast(new Intent(
                 Constants.INTENT_START_SYNC_TO_REMOTE));
     }
@@ -791,11 +786,10 @@ public class Simpletask extends ListActivity implements
                         taskBag.delete(t);
                     }
                 }
-                m_adapter.setFilteredTasks(false);
                 taskBag.store();
-                m_app.updateWidgets();
                 m_app.setNeedToPush(true);
                 // We have change the data, views should refresh
+                m_app.updateUI();
                 sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
             }
         });
@@ -1028,7 +1022,7 @@ public class Simpletask extends ListActivity implements
 			options_menu.findItem(R.id.search).collapseActionView();
 		}
 		clearFilter();
-		m_adapter.setFilteredTasks(false);
+        m_app.updateUI();
 	}
 
 	@Override
@@ -1159,17 +1153,7 @@ public class Simpletask extends ListActivity implements
 				position++;
 			}
 			size = position;
-			for (DataSetObserver ob : obs) {
-				ob.onChanged();
-			}
 			updateFilterBar();
-
-		}
-
-		@Override
-		public void registerDataSetObserver(DataSetObserver observer) {
-			obs.add(observer);
-			return;
 		}
 
         /*
@@ -1357,7 +1341,7 @@ public class Simpletask extends ListActivity implements
 				@Override
 				protected void publishResults(CharSequence charSequence,
 						FilterResults filterResults) {
-					setFilteredTasks(false);
+					m_app.updateUI();
 				}
 			};
 		}
@@ -1391,7 +1375,7 @@ public class Simpletask extends ListActivity implements
                 Intent intent = getIntent();
                 intent.putExtra(Constants.INTENT_CONTEXTS_FILTER_NOT, m_contextsNot);
                 setIntent(intent);
-                m_adapter.setFilteredTasks(false);
+                m_app.updateUI();
             }
         });
 
@@ -1412,7 +1396,7 @@ public class Simpletask extends ListActivity implements
                 Intent intent = getIntent();
                 intent.putExtra(Constants.INTENT_PROJECTS_FILTER_NOT, m_projectsNot);
                 setIntent(intent);
-                m_adapter.setFilteredTasks(false);
+                m_app.updateUI();
             }
         });
     }
@@ -1484,8 +1468,7 @@ public class Simpletask extends ListActivity implements
                 ed.clearFocus();
                 ed.setText("");
                 taskBag.store();
-                m_adapter.setFilteredTasks(false);
-                m_app.updateWidgets();
+                m_app.updateUI();
                 m_app.setNeedToPush(true);
                 sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
                 actionMode.finish();
@@ -1525,8 +1508,7 @@ public class Simpletask extends ListActivity implements
                     }
                 }
                 taskBag.store();
-                m_adapter.setFilteredTasks(false);
-                m_app.updateWidgets();
+                m_app.updateUI();
                 m_app.setNeedToPush(true);
                 sendBroadcast(new Intent(Constants.INTENT_START_SYNC_TO_REMOTE));
                 actionMode.finish();
@@ -1731,7 +1713,7 @@ public class Simpletask extends ListActivity implements
 				break;
 			}
 			mode.finish();
-			m_adapter.setFilteredTasks(false);
+            m_app.updateUI();
 			return true;
 		}
 
@@ -1835,7 +1817,7 @@ public class Simpletask extends ListActivity implements
                     setIntent(intent);
                     break;
             }
-            m_adapter.setFilteredTasks(false);
+            m_app.updateUI();
 		}
 	}
 }

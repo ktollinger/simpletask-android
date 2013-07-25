@@ -391,7 +391,7 @@ public class Task implements Serializable, Comparable<Task> {
         } else {
             taskContents = taskContents + " due:" + deferString;
         }
-        init(taskContents,null);
+        this.update(taskContents);
     }
 
     public void deferThresholdDate(String deferString) {
@@ -401,7 +401,7 @@ public class Task implements Serializable, Comparable<Task> {
         } else {
             taskContents = taskContents + " t:" + deferString;
         }
-        init(taskContents,null);
+        this.update(taskContents);
     }
 
     public void deferToDate(boolean isThresholdDate, String deferString) {
