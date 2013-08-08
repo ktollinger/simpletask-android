@@ -22,8 +22,13 @@
  */
 package nl.mpcjanssen.simpletask.task;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
 import nl.mpcjanssen.simpletask.Simpletask;
+import nl.mpcjanssen.simpletask.TodoApplication;
 import nl.mpcjanssen.simpletask.remote.PullTodoResult;
 import nl.mpcjanssen.simpletask.remote.RemoteClientManager;
 import nl.mpcjanssen.simpletask.util.TaskIo;
@@ -45,6 +50,7 @@ import java.util.*;
  */
 public class TaskBag {
     final static String TAG = Simpletask.class.getSimpleName();
+    private SQLiteDatabase database;
     private Preferences preferences;
     private final LocalFileTaskRepository localRepository;
     private final RemoteClientManager remoteClientManager;
@@ -57,9 +63,28 @@ public class TaskBag {
         this.preferences = taskBagPreferences;
         this.localRepository = localTaskRepository;
         this.remoteClientManager = remoteClientManager;
+        this.database = new TodoStore().getWritableDatabase();
     }
 
 
+    private class TodoStore extends SQLiteOpenHelper {
+
+        public TodoStore() {
+            super(TodoApplication.getAppContext(), null, null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase sqLiteDatabase) {
+            sqLiteDatabase.beginTransaction();
+            sqLiteDatabase.execSQL("CREATE TABLE lines(linenr INTEGER, line, PRIMARY KEY(linenr ASC))" );
+            sqLiteDatabase.endTransaction();
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2) {
+
+        }
+    }
     private void store(ArrayList<Task> tasks) {
         localRepository.store(tasks);
     }
