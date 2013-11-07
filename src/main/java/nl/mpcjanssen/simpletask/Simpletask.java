@@ -1225,9 +1225,13 @@ public class Simpletask extends SherlockListActivity {
                                ListView v = getListView();
                                SparseBooleanArray positions = v.getCheckedItemPositions();
                                if (positions.get(position,false)) {
-                                   convertView.setBackgroundColor(0xFFEEEEEE);
+                                   convertView.setBackgroundColor(0xff33b5e5);
                                } else {
-                                   convertView.setBackgroundColor(0xFFFFFFFF);
+                                   if (m_app.isDarkTheme()) {
+                                       convertView.setBackgroundColor(0xFF000000);
+                                   } else {
+                                       convertView.setBackgroundColor(0xFFFFFFFF);
+                                   }
                                }
                            }
 				       }
