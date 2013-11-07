@@ -1221,6 +1221,15 @@ public class Simpletask extends SherlockListActivity {
 								       holder.tasktext.getPaddingTop(),
 								       holder.tasktext.getPaddingRight(), 0);
 					       }
+                           if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+                               ListView v = getListView();
+                               SparseBooleanArray positions = v.getCheckedItemPositions();
+                               if (positions.get(position,false)) {
+                                   convertView.setBackgroundColor(0xFFEEEEEE);
+                               } else {
+                                   convertView.setBackgroundColor(0xFFFFFFFF);
+                               }
+                           }
 				       }
 			       }
                    return convertView;
