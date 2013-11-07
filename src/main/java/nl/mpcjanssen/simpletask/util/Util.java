@@ -475,7 +475,7 @@ public class Util {
         final String[] values  = { "", today, tomorrow, oneWeek, twoWeeks, oneMonth, "pick" };
         if (!showNone) {
             ArrayList<String> newKeys = new ArrayList<String>();
-            newKeys.addAll(Arrays.asList(values));
+            newKeys.addAll(Arrays.asList(keys));
             newKeys.remove(0);
             keys = newKeys.toArray(new String[values.length-1]);
         }
