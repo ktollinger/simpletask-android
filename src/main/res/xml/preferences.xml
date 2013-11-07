@@ -32,7 +32,7 @@
 
     <PreferenceCategory android:title="@string/todotxt_ui_settings_header">
         <ListPreference
-            android:defaultValue="android.R.style.Theme_Holo_Light_DarkActionBar"
+            android:defaultValue="light"
             android:entries="@array/themes"
             android:entryValues="@array/theme_values"
             android:key="@string/theme_pref_key"
