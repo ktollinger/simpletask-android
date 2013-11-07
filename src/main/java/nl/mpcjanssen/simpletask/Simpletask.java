@@ -25,6 +25,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Events;
@@ -144,10 +145,10 @@ public class Simpletask extends SherlockListActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            if (m_drawerLayout.isDrawerOpen(m_contextDrawerList)) {
-                m_drawerLayout.closeDrawer(m_contextDrawerList);
+            if (m_drawerLayout.isDrawerOpen(Gravity.LEFT)) {
+                m_drawerLayout.closeDrawer(Gravity.LEFT);
             } else {
-                m_drawerLayout.openDrawer(m_contextDrawerList);
+                m_drawerLayout.openDrawer(Gravity.LEFT);
             }
         }
         return super.onOptionsItemSelected(item);
@@ -178,7 +179,7 @@ public class Simpletask extends SherlockListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		Log.v(TAG, "onCreate");
 		m_app = (TodoApplication) getApplication();
-        m_app.setActionBarStyle(getWindow());
+        m_app.setActionBarStyle(getSherlock());
         super.onCreate(savedInstanceState);
 
 		final IntentFilter intentFilter = new IntentFilter();
@@ -308,8 +309,8 @@ public class Simpletask extends SherlockListActivity {
 
             // Set the drawer toggle as the DrawerListener
 			m_drawerLayout.setDrawerListener(m_drawerToggle);
-			getActionBar().setDisplayHomeAsUpEnabled(true);
-			getActionBar().setHomeButtonEnabled(true);
+			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+			getSupportActionBar().setHomeButtonEnabled(true);
 			m_drawerToggle.syncState();
 		}
 
@@ -436,10 +437,11 @@ public class Simpletask extends SherlockListActivity {
 		searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		SearchView searchView = (SearchView) menu.findItem(R.id.search)
 			.getActionView();
-		searchView.setSearchableInfo(searchManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+		    searchView.setSearchableInfo(searchManager
 				.getSearchableInfo(getComponentName()));
-		searchView.setIconifiedByDefault(false); // Do not iconify the widget;
-		// expand it by default
+		    searchView.setIconifiedByDefault(false); // Do not iconify the widget;
+        }
 
 		this.options_menu = menu;
 		if (m_app.isCloudLess()) {
@@ -1721,7 +1723,6 @@ public class Simpletask extends SherlockListActivity {
 					break;
 			}
 			mode.finish();
-			m_adapter.setFilteredTasks(false);
 			return true;
 		}
 
@@ -1741,7 +1742,7 @@ public class Simpletask extends SherlockListActivity {
 			}
 			updateDrawerList();
             getListView().clearChoices();
-            m_adapter.notifyDataSetChanged();
+            m_adapter.setFilteredTasks(false);
             actionMode = null;
 			return;
 		}

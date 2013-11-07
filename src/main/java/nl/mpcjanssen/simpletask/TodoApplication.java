@@ -22,20 +22,22 @@
  */
 package nl.mpcjanssen.simpletask;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
-import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.*;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Window;
+
+import com.actionbarsherlock.ActionBarSherlock;
 
 import java.io.File;
 import java.io.IOException;
@@ -485,7 +487,11 @@ public class TodoApplication extends Application implements SharedPreferences.On
         updateWidgets();
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void updateWidgets() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            return;
+        }
         AppWidgetManager mgr = AppWidgetManager.getInstance(getApplicationContext());
         for (int appWidgetId : mgr.getAppWidgetIds(new ComponentName(getApplicationContext(), MyAppWidgetProvider.class))) {
             mgr.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widgetlv);
@@ -493,7 +499,11 @@ public class TodoApplication extends Application implements SharedPreferences.On
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void redrawWidgets(){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            return;
+        }
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, MyAppWidgetProvider.class));
         if (appWidgetIds.length > 0) {
@@ -512,9 +522,9 @@ public class TodoApplication extends Application implements SharedPreferences.On
         }
     }
 
-    public void setActionBarStyle(Window window) {
+    public void setActionBarStyle(ActionBarSherlock sherlock) {
         if (getPrefs().getBoolean(getString(R.string.split_actionbar_key), true)) {
-            window.setUiOptions(ActivityInfo.UIOPTION_SPLIT_ACTION_BAR_WHEN_NARROW);
+            sherlock.setUiOptions(ActivityInfo.UIOPTION_SPLIT_ACTION_BAR_WHEN_NARROW);
         }
     }
 

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.mobeta.android.dslv.DragSortListView;
 
 import nl.mpcjanssen.simpletask.util.Strings;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FilterSortFragment extends Fragment {
+public class FilterSortFragment extends SherlockFragment {
     
     private final static String STATE_SELECTED = "selectedItem";
 

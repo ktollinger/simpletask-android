@@ -1,7 +1,5 @@
 package nl.mpcjanssen.simpletask;
 
-import android.app.ActionBar;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -9,9 +7,12 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.View.OnTouchListener;
 import android.widget.*;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragment;
+
 import java.util.ArrayList;
 
-public class FilterListFragment extends Fragment {
+public class FilterListFragment extends SherlockFragment {
 
     final static String TAG = FilterListFragment.class.getSimpleName();
     private ListView lv;
@@ -51,7 +52,7 @@ public class FilterListFragment extends Fragment {
 
         Bundle arguments = getArguments();
         ArrayList<String> items = arguments.getStringArrayList(FilterActivity.FILTER_ITEMS);
-        actionbar = getActivity().getActionBar();
+        actionbar = getSherlockActivity().getSupportActionBar();
 
         if (savedInstanceState != null) {
             selectedItems = savedInstanceState.getStringArrayList("selectedItems");

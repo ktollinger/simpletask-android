@@ -1,7 +1,6 @@
 package nl.mpcjanssen.simpletask;
 
-import android.app.ActionBar;
-import android.app.Fragment;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -18,9 +17,12 @@ import android.widget.CheckedTextView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragment;
+
 import java.util.ArrayList;
 
-public class FilterOtherFragment extends Fragment {
+public class FilterOtherFragment extends SherlockFragment {
 
     final static String TAG = FilterOtherFragment.class.getSimpleName();
     private CheckBox cbHideCompleted;
@@ -56,7 +58,7 @@ public class FilterOtherFragment extends Fragment {
         Log.v(TAG, "onCreateView() this:" + this + " savedInstance:" + savedInstanceState);
 
         Bundle arguments = getArguments();
-        actionbar = getActivity().getActionBar();
+        actionbar = getSherlockActivity().getSupportActionBar();
         Log.v(TAG, "Fragment bundle:" + this + " arguments:" + arguments);
         LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.other_filter,
                 container, false);

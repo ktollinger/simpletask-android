@@ -1,9 +1,11 @@
 package nl.mpcjanssen.simpletask;
 
+import android.annotation.TargetApi;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -14,6 +16,7 @@ import nl.mpcjanssen.simpletask.R;
 
 import java.util.*;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class AppWidgetService extends RemoteViewsService {
 
 	@Override
@@ -24,6 +27,7 @@ public class AppWidgetService extends RemoteViewsService {
 
 }
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class AppWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 	final static String TAG = AppWidgetRemoteViewsFactory.class.getSimpleName();
 

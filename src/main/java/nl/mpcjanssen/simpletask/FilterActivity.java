@@ -1,26 +1,30 @@
 package nl.mpcjanssen.simpletask;
 
-import android.app.*;
-import android.app.ActionBar.Tab;
+import android.app.AlertDialog;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.EditText;
+
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
+import java.util.ArrayList;
+
 import nl.mpcjanssen.simpletask.task.Priority;
 import nl.mpcjanssen.simpletask.task.TaskBag;
 import nl.mpcjanssen.simpletask.util.Util;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
-public class FilterActivity extends Activity {
+public class FilterActivity extends SherlockFragmentActivity {
 
     final static String TAG = FilterActivity.class.getSimpleName();
     final static String CONTEXT_TAB = "context";
@@ -58,7 +62,7 @@ public class FilterActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {    	
     	Log.v(TAG, "Called with intent: " + getIntent().toString());
         TodoApplication  m_app = (TodoApplication) getApplication();
-        m_app.setActionBarStyle(getWindow());
+        m_app.setActionBarStyle(getSherlock());
         super.onCreate(savedInstanceState);
 
         // Set the proper theme
@@ -66,7 +70,7 @@ public class FilterActivity extends Activity {
         setContentView(R.layout.filter);
 
         Bundle arguments;
-        actionbar = getActionBar();
+        actionbar = getSupportActionBar();
         actionbar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         Intent intent = getIntent();
         mFilter = new ActiveFilter(getResources());
@@ -116,7 +120,7 @@ public class FilterActivity extends Activity {
 
         // Fill arguments for fragment
         arguments = new Bundle();
-        Tab sortTab = actionbar.newTab()
+        ActionBar.Tab sortTab = actionbar.newTab()
                 .setText(getString(R.string.sort))
                 .setTabListener(new MyTabsListener(this, SORT_TAB, FilterSortFragment.class, arguments))
                 .setTag(SORT_TAB);
@@ -131,7 +135,7 @@ public class FilterActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.filter, menu);
+        getSupportMenuInflater().inflate(R.menu.filter, menu);
         if (asWidgetConfigure) {
         	menu.findItem(R.id.menu_add_filter_shortcut).setVisible(false);		
         	menu.findItem(R.id.menu_filter_action).setTitle(R.string.create_widget);
@@ -165,7 +169,7 @@ public class FilterActivity extends Activity {
 
     private void defaultSort() {
 		// Find the fragment
-    	FilterSortFragment fr = (FilterSortFragment)this.getFragmentManager().findFragmentByTag(SORT_TAB);
+    	FilterSortFragment fr = (FilterSortFragment)this.getSupportFragmentManager().findFragmentByTag(SORT_TAB);
 		fr.defaultSort();
 	}
     
@@ -224,7 +228,7 @@ public class FilterActivity extends Activity {
 
     private ArrayList<String> getFragmentFilter(String tag) {
         FilterListFragment fr;
-        fr = (FilterListFragment) this.getFragmentManager().findFragmentByTag(tag);
+        fr = (FilterListFragment) this.getSupportFragmentManager().findFragmentByTag(tag);
         if (fr == null) {
             // fragment was not initialized so no update
             return null;
@@ -235,7 +239,7 @@ public class FilterActivity extends Activity {
 
     private ArrayList<String> getSelectedSort() {
         FilterSortFragment fr;
-        fr = (FilterSortFragment) this.getFragmentManager().findFragmentByTag(SORT_TAB);
+        fr = (FilterSortFragment) this.getSupportFragmentManager().findFragmentByTag(SORT_TAB);
         if (fr == null) {
             // fragment was never intialized
             return null;
@@ -246,7 +250,7 @@ public class FilterActivity extends Activity {
 
     private boolean getHideCompleted() {
         FilterOtherFragment fr;
-        fr = (FilterOtherFragment) this.getFragmentManager().findFragmentByTag(OTHER_TAB);
+        fr = (FilterOtherFragment) this.getSupportFragmentManager().findFragmentByTag(OTHER_TAB);
         if (fr == null) {
             // fragment was never intialized
             return mFilter.getHideCompleted();
@@ -257,7 +261,7 @@ public class FilterActivity extends Activity {
 
     private boolean getHideFuture() {
         FilterOtherFragment fr;
-        fr = (FilterOtherFragment) this.getFragmentManager().findFragmentByTag(OTHER_TAB);
+        fr = (FilterOtherFragment) this.getSupportFragmentManager().findFragmentByTag(OTHER_TAB);
         if (fr == null) {
             // fragment was never intialized
             return mFilter.getHideFuture();
@@ -267,7 +271,7 @@ public class FilterActivity extends Activity {
     }
     private boolean getNot(String tag, boolean current) {
         FilterListFragment fr;
-        fr = (FilterListFragment) this.getFragmentManager().findFragmentByTag(tag);
+        fr = (FilterListFragment) this.getSupportFragmentManager().findFragmentByTag(tag);
         boolean not;
         if (fr == null) {
             // fragment was never intialized
@@ -394,15 +398,15 @@ public class FilterActivity extends Activity {
 
     }
 
-    private class MyTabsListener<T extends Fragment> implements ActionBar.TabListener {
+    private class MyTabsListener<T extends SherlockFragment> implements ActionBar.TabListener {
 
         private Fragment mFragment;
-        private final Activity mActivity;
+        private final SherlockFragmentActivity mActivity;
         private final String mTag;
         private final Bundle mArguments;
         private Class<T> mClz;
 
-        public MyTabsListener(Activity activity, String tag, Class<T> clz, Bundle arguments) {
+        public MyTabsListener(SherlockFragmentActivity activity, String tag, Class<T> clz, Bundle arguments) {
             mActivity = activity;
             mTag = tag;
             mArguments = arguments;
@@ -410,18 +414,18 @@ public class FilterActivity extends Activity {
         }
 
         @Override
-        public void onTabReselected(Tab tab, FragmentTransaction ft) {
+        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
 
         }
 
         @Override
-        public void onTabSelected(Tab tab, FragmentTransaction ft) {
+        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
             // Check to see if we already have a fragment for this tab, probably
             // from a previously saved state.
-            mFragment = mActivity.getFragmentManager().findFragmentByTag(mTag);
+            mFragment = mActivity.getSupportFragmentManager().findFragmentByTag(mTag);
             if (mFragment == null) {
                 // If not, instantiate and add it to the activity
-                mFragment = Fragment.instantiate(mActivity, mClz.getName(), mArguments);
+                mFragment = SherlockFragment.instantiate(mActivity, mClz.getName(), mArguments);
                 ft.add(android.R.id.content, mFragment, mTag);
             } else {
                 // If it exists, simply attach it in order to show it
@@ -439,7 +443,7 @@ public class FilterActivity extends Activity {
         }
 
         @Override
-        public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
             if (mFragment != null) {
                 // Detach the fragment, because another one is being attached
                 ft.detach(mFragment);

@@ -27,4 +27,5 @@
     <attr name="click_remove_id" format="integer" />
     <attr name="use_default_controller" format="boolean" />
   </declare-styleable>
+  <bool name="enable_widget">false</bool>
 </resources>
