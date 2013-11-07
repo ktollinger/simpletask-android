@@ -8,34 +8,16 @@
 
 package nl.mpcjanssen.simpletask;
 
-import nl.mpcjanssen.simpletask.remote.RemoteClient;
-import nl.mpcjanssen.simpletask.sort.MultiComparator;
-import nl.mpcjanssen.simpletask.task.ByContextFilter;
-import nl.mpcjanssen.simpletask.task.ByPriorityFilter;
-import nl.mpcjanssen.simpletask.task.ByProjectFilter;
-import nl.mpcjanssen.simpletask.task.ByTextFilter;
-import nl.mpcjanssen.simpletask.task.Priority;
-import nl.mpcjanssen.simpletask.task.Task;
-import nl.mpcjanssen.simpletask.task.TaskBag;
-import nl.mpcjanssen.simpletask.task.TaskFilter;
-import nl.mpcjanssen.simpletask.util.Strings;
-import nl.mpcjanssen.simpletask.util.Util;
-import nl.mpcjanssen.simpletask.util.Util.OnMultiChoiceDialogListener;
-
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.DataSetObserver;
@@ -52,12 +34,10 @@ import android.text.SpannableString;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
-import android.view.ActionMode;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -79,14 +59,36 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.ActionMode;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import nl.mpcjanssen.simpletask.remote.RemoteClient;
+import nl.mpcjanssen.simpletask.sort.MultiComparator;
+import nl.mpcjanssen.simpletask.task.Priority;
+import nl.mpcjanssen.simpletask.task.Task;
+import nl.mpcjanssen.simpletask.task.TaskBag;
+import nl.mpcjanssen.simpletask.util.Strings;
+import nl.mpcjanssen.simpletask.util.Util;
+import nl.mpcjanssen.simpletask.util.Util.OnMultiChoiceDialogListener;
 
 import static java.lang.Thread.sleep;
 
 
-public class Simpletask extends ListActivity  {
+public class Simpletask extends SherlockListActivity {
 
 	final static String TAG = Simpletask.class.getSimpleName();
 	private final static int REQUEST_FILTER = 1;
@@ -141,14 +143,14 @@ public class Simpletask extends ListActivity  {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Pass the event to ActionBarDrawerToggle, if it returns
-		// true, then it has handled the app icon touch event
-		if (m_drawerToggle!=null && m_drawerToggle.onOptionsItemSelected(item)) {
-			return true;
-		}
-		// Handle your other action bar items...
-
-		return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            if (m_drawerLayout.isDrawerOpen(m_contextDrawerList)) {
+                m_drawerLayout.closeDrawer(m_contextDrawerList);
+            } else {
+                m_drawerLayout.openDrawer(m_contextDrawerList);
+            }
+        }
+        return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -161,6 +163,17 @@ public class Simpletask extends ListActivity  {
 		}
 	}
 
+
+    private List<Task> getCheckedTasks() {
+        ArrayList<Task> checkedTasks = new ArrayList<Task>();
+        SparseBooleanArray checkedItems = getListView().getCheckedItemPositions();
+        for (int i = 0; i < checkedItems.size(); i++) {
+            if (checkedItems.valueAt(i) == true) {
+                checkedTasks.add(getTaskAt(checkedItems.keyAt(i)));
+            }
+        }
+        return checkedTasks;
+    }
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.v(TAG, "onCreate");
@@ -328,8 +341,7 @@ public class Simpletask extends ListActivity  {
 
 		ListView lv = getListView();
 		lv.setTextFilterEnabled(true);
-		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-		lv.setMultiChoiceModeListener(new ActionBarListener());
+		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
 		// If we were started with a selected task,
 		// select it now and clear it from the intent
@@ -343,7 +355,10 @@ public class Simpletask extends ListActivity  {
 			// Set the adapter for the list view
 			updateDrawerList();
 		}
-
+        if (savedInstanceState!=null) {
+            lv.onRestoreInstanceState(savedInstanceState.getParcelable("lv"));
+        }
+        showContextActionBarIfNeeded();
 	}
 
 	private void setSelectedTask(int index,String selectedTask) {
@@ -390,6 +405,7 @@ public class Simpletask extends ListActivity  {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
+        outState.putParcelable("lv", getListView().onSaveInstanceState());
 		mFilter.saveInBundle(outState);
 	}
 
@@ -415,7 +431,7 @@ public class Simpletask extends ListActivity  {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
+		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.main, menu);
 		searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		SearchView searchView = (SearchView) menu.findItem(R.id.search)
@@ -434,9 +450,31 @@ public class Simpletask extends ListActivity  {
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// toggle selected state
-		l.setItemChecked(position, !l.isItemChecked(position));
+        showContextActionBarIfNeeded();
 	}
+
+    boolean inActionMode() {
+        return actionMode != null;
+    }
+
+    void showContextActionBarIfNeeded() {
+        List<Task> checkedTasks = getCheckedTasks();
+        int checkedCount = checkedTasks.size();
+
+        if (inActionMode() && checkedCount == 0) {
+            actionMode.finish();
+            return;
+        } else if (checkedCount == 0) {
+            return;
+        }
+
+        if (actionMode == null) {
+            actionMode = startActionMode(new ActionBarListener());
+        } else {
+            actionMode.invalidate();
+        }
+
+    }
 
 	private Task getTaskAt(final int pos) {
 		return m_adapter.getItem(pos);
@@ -573,7 +611,7 @@ public class Simpletask extends ListActivity  {
                     Task newTask = taskBag.addAsTask(t.inFileFormat());
                     boolean fromOriginalDate = m_app.hasRecurOriginalDates();
                     if (newTask.getDueDate()==null && newTask.getThresholdDate()==null) {
-                        newTask.deferDueDate(t.getRecurrencePattern(),fromOriginalDate);
+                        newTask.deferDueDate(t.getRecurrencePattern(), fromOriginalDate);
                     } else {
                         if (newTask.getDueDate()!=null) {
                             newTask.deferDueDate(t.getRecurrencePattern(),fromOriginalDate);
@@ -955,10 +993,11 @@ public class Simpletask extends ListActivity  {
 		       SparseArray<Integer> indexToPosition = new SparseArray<Integer>();
 		       int size = 0;
 
+
 		       public TaskAdapter(Context context, int textViewResourceId,
 				       LayoutInflater inflater, ListView view) {
 			       this.m_inflater = inflater;
-		       }
+ 		       }
 
 		       void setFilteredTasks(boolean reload) {
 			       Log.v(TAG, "setFilteredTasks called, reload: " + reload);
@@ -1182,7 +1221,7 @@ public class Simpletask extends ListActivity  {
 					       }
 				       }
 			       }
-			       return convertView;
+                   return convertView;
 		       }
 
 		       @Override
@@ -1547,18 +1586,11 @@ public class Simpletask extends ListActivity  {
 		startActivityForResult(i, REQUEST_FILTER);
 	}
 
-	class ActionBarListener implements AbsListView.MultiChoiceModeListener {
-
-		@Override
-		public void onItemCheckedStateChanged(ActionMode mode, int position,
-				long id, boolean checked) {
-			getListView().invalidateViews();
-			mode.invalidate();
-		}
+	class ActionBarListener implements ActionMode.Callback  {
 
 		@Override
 		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-			MenuInflater inflater = getMenuInflater();
+			MenuInflater inflater = getSupportMenuInflater();
 			inflater.inflate(R.menu.task_context, menu);
 			actionMode = mode;
 			return true;
@@ -1701,25 +1733,16 @@ public class Simpletask extends ListActivity  {
 			return Util.join(result, "\n");
 		}
 
-		private List<Task> getCheckedTasks() {
-			ArrayList<Task> checkedTasks = new ArrayList<Task>();
-			SparseBooleanArray checkedItems = getListView()
-				.getCheckedItemPositions();
-			for (int i = 0; i < checkedItems.size(); i++) {
-				if (checkedItems.valueAt(i) == true) {
-					checkedTasks.add(getTaskAt(checkedItems.keyAt(i)));
-				}
-			}
-			return checkedTasks;
-		}
-
-		@Override
+        @Override
 		public void onDestroyActionMode(ActionMode mode) {
 			actionMode = null;
 			if (m_drawerLayout!=null) {
 				m_drawerLayout.closeDrawers();
 			}
 			updateDrawerList();
+            getListView().clearChoices();
+            m_adapter.notifyDataSetChanged();
+            actionMode = null;
 			return;
 		}
 	}
