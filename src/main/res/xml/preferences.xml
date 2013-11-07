@@ -76,6 +76,10 @@
             android:summary="@string/long_press_drag_pref_summary"
             android:title="@string/long_press_drag_pref_title" />
         <CheckBoxPreference
+            android:key="@string/auto_archive_pref_key"
+            android:summary="@string/auto_archive_pref_summary"
+            android:title="@string/auto_archive_pref_title" />
+        <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/back_key_saves_key"
             android:summary="@string/back_saves_summary"
@@ -111,13 +115,8 @@
             android:summary="@string/dropbox_logout_pref_summary"
             android:title="@string/dropbox_logout_pref_title" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/archive">
-        <CheckBoxPreference
-            android:key="@string/auto_archive_pref_key"
-            android:summary="@string/auto_archive_pref_summary"
-            android:title="@string/auto_archive_pref_title" />
 
-    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/about_settings_header">
         <Preference
             android:key="app_version"

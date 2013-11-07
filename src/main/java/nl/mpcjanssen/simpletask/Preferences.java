@@ -41,6 +41,18 @@ import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import nl.mpcjanssen.simpletask.util.Util;
 
 public class Preferences extends SherlockPreferenceActivity {
+    public static final int RESULT_LOGOUT = RESULT_FIRST_USER + 1;
+
+    private void broadcastIntentAndClose(String intent, int result) {
+
+        Intent broadcastIntent = new Intent(intent);
+        sendBroadcast(broadcastIntent);
+
+        // Close preferences screen
+        setResult(result);
+        finish();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,5 +72,25 @@ public class Preferences extends SherlockPreferenceActivity {
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
+    }
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+                                         Preference preference) {
+        if (preference.getKey() == null) {
+            return false;
+        }
+         if (preference.getKey().equals("logout_dropbox")) {
+            Log.v("PREFERENCES", "Logging out from Dropbox");
+            Util.showConfirmationDialog(this, R.string.logout_message, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    broadcastIntentAndClose(
+                            getPackageName()+Constants.BROADCAST_ACTION_LOGOUT,
+                            Preferences.RESULT_LOGOUT);
+                }
+            }, R.string.dropbox_logout_pref_title);
+
+        }
+        return true;
     }
 }
