@@ -434,10 +434,10 @@ public class Simpletask extends SherlockListActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.main, menu);
-		searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-		SearchView searchView = (SearchView) menu.findItem(R.id.search)
-			.getActionView();
+        searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            SearchView searchView = (SearchView) menu.findItem(R.id.search)
+                    .getActionView();
 		    searchView.setSearchableInfo(searchManager
 				.getSearchableInfo(getComponentName()));
 		    searchView.setIconifiedByDefault(false); // Do not iconify the widget;

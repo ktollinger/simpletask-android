@@ -34,88 +34,31 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.util.Log;
 
+import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import nl.mpcjanssen.simpletask.util.Util;
 
-public class Preferences extends Activity {
-	final static String TAG = Preferences.class.getSimpleName();
-	public static final int RESULT_LOGOUT = RESULT_FIRST_USER + 1;
-	public static final int RESULT_ARCHIVE = RESULT_FIRST_USER + 2;
+public class Preferences extends SherlockPreferenceActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.preferences);
+        TodoApplication app = (TodoApplication) getApplication();
+        if (app.isCloudLess()) {
+            PreferenceCategory dropboxCategory = (PreferenceCategory) findPreference(getString(R.string.dropbox_cat_key));
+            getPreferenceScreen().removePreference(dropboxCategory);
+        }
 
-	private void broadcastIntentAndClose(String intent, int result) {
-
-		Intent broadcastIntent = new Intent(intent);
-		sendBroadcast(broadcastIntent);
-
-		// Close preferences screen
-		setResult(result);
-		finish();
-	}
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-        TodoApplication m_app = (TodoApplication) getApplication();
-        // Set the proper theme
-        setTheme(m_app.getActiveTheme());
-		super.onCreate(savedInstanceState);
-		// Display the fragment as the main content.
-		getFragmentManager().beginTransaction()
-				.replace(android.R.id.content, new TodoTxtPrefFragment())
-				.commit();
-
-	}
-
-	public static class TodoTxtPrefFragment extends PreferenceFragment {
-		@Override
-		public void onCreate(final Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			addPreferencesFromResource(R.xml.preferences);
-			PackageInfo packageInfo;
-			final Preference versionPref = findPreference("app_version");
-			try {
-				packageInfo = getActivity().getPackageManager().getPackageInfo(
-						getActivity().getPackageName(), 0);
-				versionPref.setSummary("v" + packageInfo.versionName);
-			} catch (NameNotFoundException e) {
-				e.printStackTrace();
-			}
-            TodoApplication app = (TodoApplication)getActivity().getApplication();
-            if (app.isCloudLess()) {
-                PreferenceCategory dropboxCategory = (PreferenceCategory) findPreference(getString(R.string.dropbox_cat_key));
-                getPreferenceScreen().removePreference(dropboxCategory);
-            }
-		}
-
-		@Override
-		public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-				Preference preference) {
-			if (preference.getKey() == null) {
-				return false;
-			}
-			if (preference.getKey().equals("archive_now")) {
-				Log.v("PREFERENCES",
-						"Archiving completed items from preferences");
-                Util.showConfirmationDialog(this.getActivity(), R.string.delete_task_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        ((Preferences) getActivity()).broadcastIntentAndClose(
-                                getActivity().getPackageName()+Constants.BROADCAST_ACTION_ARCHIVE,
-                                Preferences.RESULT_ARCHIVE);
-                    }
-                }, R.string.archive_task_title);
-
-			} else if (preference.getKey().equals("logout_dropbox")) {
-				Log.v("PREFERENCES", "Logging out from Dropbox");
-                Util.showConfirmationDialog(this.getActivity(), R.string.logout_message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        ((Preferences) getActivity()).broadcastIntentAndClose(
-                                getActivity().getPackageName()+Constants.BROADCAST_ACTION_LOGOUT,
-                                Preferences.RESULT_LOGOUT);
-                    }
-                }, R.string.dropbox_logout_pref_title);
-
-			}
-			return true;
-		}
-	}
+        PackageInfo packageInfo;
+        final Preference versionPref = findPreference("app_version");
+        try {
+            packageInfo = getPackageManager().getPackageInfo(
+                    getPackageName(), 0);
+            versionPref.setSummary("v" + packageInfo.versionName);
+        } catch (NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 }

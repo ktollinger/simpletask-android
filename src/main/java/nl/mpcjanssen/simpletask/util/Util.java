@@ -474,7 +474,10 @@ public class Util {
         String oneMonth = "1m";
         final String[] values  = { "", today, tomorrow, oneWeek, twoWeeks, oneMonth, "pick" };
         if (!showNone) {
-            keys = Arrays.copyOfRange(keys, 1, keys.length);
+            ArrayList<String> newKeys = new ArrayList<String>();
+            newKeys.addAll(Arrays.asList(values));
+            newKeys.remove(0);
+            keys = newKeys.toArray(new String[values.length-1]);
         }
         int titleId;
         if (dateType==Task.DUE_DATE) {

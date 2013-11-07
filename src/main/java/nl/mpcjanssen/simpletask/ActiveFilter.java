@@ -4,12 +4,14 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import nl.mpcjanssen.simpletask.task.ByContextFilter;
 import nl.mpcjanssen.simpletask.task.ByPriorityFilter;
@@ -122,11 +124,11 @@ public class ActiveFilter {
         m_sorts = new ArrayList<String>();
         m_sorts.addAll(Arrays.asList(prefs.getString(INTENT_SORT_ORDER, "")
                 .split(INTENT_EXTRA_DELIMITERS)));
-        m_contexts = new ArrayList<String>(prefs.getStringSet(
+        m_contexts = new ArrayList<String>(getStringSet(prefs,
                 INTENT_CONTEXTS_FILTER, Collections.<String>emptySet()));
-        m_prios = Priority.toPriority(new ArrayList<String>(prefs
-                .getStringSet(INTENT_PRIORITIES_FILTER, Collections.<String>emptySet())));
-        m_projects = new ArrayList<String>(prefs.getStringSet(
+        m_prios = Priority.toPriority(new ArrayList<String>(getStringSet(prefs,
+                INTENT_PRIORITIES_FILTER, Collections.<String>emptySet())));
+        m_projects = new ArrayList<String>(getStringSet(prefs,
                 INTENT_PROJECTS_FILTER, Collections.<String>emptySet()));
         m_contextsNot = prefs.getBoolean(INTENT_CONTEXTS_FILTER_NOT, false);
         m_priosNot = prefs.getBoolean(INTENT_PRIORITIES_FILTER_NOT, false);
@@ -205,14 +207,40 @@ public class ActiveFilter {
         bundle.putString(SearchManager.QUERY, m_search);
     }
 
+    public void putStringSet (SharedPreferences.Editor editor, String key,  HashSet<String> set) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            editor.putStringSet(key, set);
+        } else {
+            editor.putString(key, Util.join(set, "\n"));
+        }
+    }
+
+    public Set<String> getStringSet(SharedPreferences prefs, String key, Set<String> def) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            return prefs.getStringSet(key,def);
+        } else {
+            if (!prefs.contains(key)) {
+                return def;
+            } else {
+                String value = prefs.getString(key, "");
+                if (value.equals("")) {
+                    return def;
+                }
+                HashSet<String> result = new HashSet<String>();
+                result.addAll(Arrays.asList(value.split("\n")));
+                return result;
+            }
+        }
+    }
+
     public void saveInPrefs(SharedPreferences prefs) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(INTENT_TITLE, mName);
         editor.putString(INTENT_SORT_ORDER, Util.join(m_sorts, "\n"));
-        editor.putStringSet(INTENT_CONTEXTS_FILTER, new HashSet<String>(m_contexts));
-        editor.putStringSet(INTENT_PRIORITIES_FILTER,
+        putStringSet(editor, INTENT_CONTEXTS_FILTER, new HashSet<String>(m_contexts));
+        putStringSet(editor, INTENT_PRIORITIES_FILTER,
                 new HashSet<String>(Priority.inCode(m_prios)));
-        editor.putStringSet(INTENT_PROJECTS_FILTER, new HashSet<String>(m_projects));
+        putStringSet(editor, INTENT_PROJECTS_FILTER, new HashSet<String>(m_projects));
         editor.putBoolean(INTENT_CONTEXTS_FILTER_NOT, m_contextsNot);
         editor.putBoolean(INTENT_PRIORITIES_FILTER_NOT, m_priosNot);
         editor.putBoolean(INTENT_PROJECTS_FILTER_NOT, m_projectsNot);
@@ -229,8 +257,8 @@ public class ActiveFilter {
         target.putExtra(INTENT_PRIORITIES_FILTER, Util.join(m_prios, "\n"));
         target.putExtra(INTENT_PRIORITIES_FILTER_NOT, m_priosNot);
         target.putExtra(INTENT_SORT_ORDER, Util.join(m_sorts, "\n"));
-        target.putExtra(INTENT_HIDE_COMPLETED_FILTER,m_hideCompleted);
-        target.putExtra(INTENT_HIDE_FUTURE_FILTER,m_hideFuture);
+        target.putExtra(INTENT_HIDE_COMPLETED_FILTER, m_hideCompleted);
+        target.putExtra(INTENT_HIDE_FUTURE_FILTER, m_hideFuture);
         target.putExtra(SearchManager.QUERY, m_search);
     }
 

@@ -49,6 +49,7 @@ You should have received a copy of the GNU General Public License along with Tod
                     android:layout_height="wrap_content"
                     android:id="@+id/left_drawer_title"
                     android:text="@string/filter_show_prompt"
+                    android:background="@android:color/holo_blue_dark"
                     android:textColor="@android:color/white"
                     style="?android:attr/listSeparatorTextViewStyle"
                     android:gravity="center_horizontal"
@@ -57,22 +58,26 @@ You should have received a copy of the GNU General Public License along with Tod
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/show_completed"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall"
                     android:gravity="center_vertical"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp"
                     android:textColor="#fff"
                     android:text="@string/filter_show_completed_short"
+                    android:minHeight="?android:attr/listPreferredItemHeightSmall"
                     android:checkMark="?android:attr/listChoiceIndicatorMultiple"
                     />
                 <CheckedTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/show_future"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall"
                     android:gravity="center_vertical"
                     android:paddingLeft="16dp"
                     android:paddingRight="16dp"
                     android:textColor="#fff"
                     android:text="@string/filter_show_future_short"
+                    android:minHeight="?android:attr/listPreferredItemHeightSmall"
                     android:checkMark="?android:attr/listChoiceIndicatorMultiple"
                     />
 
@@ -83,6 +88,7 @@ You should have received a copy of the GNU General Public License along with Tod
                     android:layout_height="wrap_content"
                     android:id="@+id/left_drawer_title"
                     android:text="@string/context_prompt"
+                    android:background="@android:color/holo_blue_dark"
                     android:textColor="@android:color/white"
                     style="?android:attr/listSeparatorTextViewStyle"
                     android:gravity="center_horizontal"
@@ -98,16 +104,19 @@ You should have received a copy of the GNU General Public License along with Tod
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:id="@+id/left_drawer_not"
+                        android:textAppearance="?android:attr/textAppearanceListItemSmall"
                         android:gravity="center_vertical"
                         android:paddingLeft="16dp"
                         android:paddingRight="16dp"
                         android:textColor="#fff"
                         android:text="@string/filter_invert"
+                        android:minHeight="?android:attr/listPreferredItemHeightSmall"
                         android:checkMark="?android:attr/listChoiceIndicatorMultiple"
                         />
                 <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
+                        android:background="@android:color/holo_blue_dark"
                         />
 
 
@@ -142,7 +151,8 @@ You should have received a copy of the GNU General Public License along with Tod
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:id="@+id/left_apply_button"
-                            android:text="@string/updatetask"/>
+                            android:text="@string/updatetask"
+                            style="@android:style/Widget.Holo.Button"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -151,6 +161,7 @@ You should have received a copy of the GNU General Public License along with Tod
     <!-- The main content view -->
     <LinearLayout android:id="@+id/home_root"
                   android:orientation="vertical"
+                  android:divider="?android:attr/dividerVertical"
                   android:showDividers="middle"
                   android:layout_gravity="fill_horizontal"
                   android:layout_width="0dp"
@@ -185,6 +196,7 @@ You should have received a copy of the GNU General Public License along with Tod
                     android:layout_weight="1"/>
 
             <ImageButton
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
                     android:src="@drawable/cancel_light"
@@ -226,6 +238,7 @@ You should have received a copy of the GNU General Public License along with Tod
                     android:layout_height="wrap_content"
                     android:id="@+id/right_drawer_title"
                     android:text="@string/project_prompt"
+                    android:background="@android:color/holo_blue_dark"
                     android:textColor="@android:color/white"
                     style="?android:attr/listSeparatorTextViewStyle"
                     android:gravity="center_horizontal"
@@ -241,16 +254,19 @@ You should have received a copy of the GNU General Public License along with Tod
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:id="@+id/right_drawer_not"
+                        android:textAppearance="?android:attr/textAppearanceListItemSmall"
                         android:gravity="center_vertical"
                         android:paddingLeft="16dp"
                         android:paddingRight="16dp"
                         android:textColor="#fff"
                         android:text="@string/filter_invert"
+                        android:minHeight="?android:attr/listPreferredItemHeightSmall"
                         android:checkMark="?android:attr/listChoiceIndicatorMultiple"
                         />
                 <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
+                        android:background="@android:color/holo_blue_dark"
                         />
 
 
@@ -285,7 +301,7 @@ You should have received a copy of the GNU General Public License along with Tod
                         android:visibility="gone"
                         android:id="@+id/right_apply_button"
                         android:text="@string/updatetask"
-            />
+                        style="@android:style/Widget.Holo.Button"/>
             </LinearLayout>
 
         </LinearLayout>

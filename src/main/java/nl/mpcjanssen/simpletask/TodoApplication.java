@@ -512,13 +512,11 @@ public class TodoApplication extends Application implements SharedPreferences.On
     }
 
     public int getActiveTheme() {
-        String theme =  getPrefs().getString(getString(R.string.theme_pref_key), "");
-        if (theme.equals("android.R.style.Theme_Holo")) {
-            return android.R.style.Theme_Holo;
-        } else if (theme.equals("android.R.style.Theme_Holo_Light_DarkActionBar")) {
-            return android.R.style.Theme_Holo_Light_DarkActionBar;
-        } else  {
-            return android.R.style.Theme_Holo_Light_DarkActionBar;
+        String theme =  getPrefs().getString(getString(R.string.theme_pref_key), "light");
+        if (theme.equals("dark")) {
+            return com.actionbarsherlock.R.style.Theme_Sherlock;
+        } else {
+            return com.actionbarsherlock.R.style.Theme_Sherlock_Light_DarkActionBar;
         }
     }
 
@@ -530,9 +528,9 @@ public class TodoApplication extends Application implements SharedPreferences.On
 
     public boolean isDarkTheme() {
         switch (getActiveTheme()) {
-            case android.R.style.Theme_Holo:
+            case com.actionbarsherlock.R.style.Theme_Sherlock:
                 return true;
-            case android.R.style.Theme_Holo_Light_DarkActionBar:
+            case com.actionbarsherlock.R.style.Theme_Sherlock_Light_DarkActionBar:
                 return false;
             default:
                 return false;

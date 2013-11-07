@@ -8,6 +8,7 @@ import java.util.HashSet;
 import nl.mpcjanssen.simpletask.task.Priority;
 import nl.mpcjanssen.simpletask.util.Util;
 
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -15,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -33,6 +35,7 @@ public class MyAppWidgetProvider extends AppWidgetProvider {
         filter.saveInIntent(target);
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public static RemoteViews updateView(int widgetId, Context context) {
         SharedPreferences preferences = context.getSharedPreferences("" + widgetId, 0);
         RemoteViews view ;
@@ -73,7 +76,8 @@ public class MyAppWidgetProvider extends AppWidgetProvider {
         view.setOnClickPendingIntent(R.id.widgetadd,pendingIntent);
         return view;
 	}
-	
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {

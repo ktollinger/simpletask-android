@@ -1,7 +1,9 @@
 package com.mobeta.android.dslv;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Build;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,6 +46,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
         super(context, c, autoRequery);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public DragSortCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
     }
@@ -53,6 +56,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
      *
      * @see android.widget.CursorAdapter#swapCursor(android.database.Cursor)
      */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public Cursor swapCursor(Cursor newCursor) {
         Cursor old = super.swapCursor(newCursor);
