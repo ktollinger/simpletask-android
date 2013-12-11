@@ -9,6 +9,7 @@
 package nl.mpcjanssen.simpletask;
 
 import nl.mpcjanssen.simpletask.adapters.DrawerAdapter;
+import nl.mpcjanssen.simpletask.adapters.TaskAdapter;
 import nl.mpcjanssen.simpletask.remote.RemoteClient;
 import nl.mpcjanssen.simpletask.sort.MultiComparator;
 import nl.mpcjanssen.simpletask.task.Priority;
@@ -306,9 +307,9 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 		// Initialize Adapter
 		if (m_adapter == null) {
 			m_adapter = new TaskAdapter(this, R.layout.list_item,
-					getLayoutInflater(), getListView());
+					getLayoutInflater(), getListView(), getTaskBag());
 		}
-		m_adapter.setFilteredTasks(true);
+		m_adapter.setFilteredTasks(mFilter, true);
 
 		setListAdapter(this.m_adapter);
 
@@ -344,7 +345,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 
 	}
 
-	private void updateFilterBar() {
+	public void updateFilterBar() {
 		ListView lv = getListView();
 		int index = lv.getFirstVisiblePosition();
 		View v = lv.getChildAt(0);
@@ -487,7 +488,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 						m_app.updateWidgets();
 						m_app.setNeedToPush(true);
 						// We have change the data, views should refresh
-						m_adapter.setFilteredTasks(false);
+						m_adapter.setFilteredTasks(mFilter, false);
 						sendBroadcast(new Intent(getPackageName()+Constants.BROADCAST_START_SYNC_TO_REMOTE));
 
 					}
@@ -521,7 +522,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 						m_app.updateWidgets();
 						m_app.setNeedToPush(true);
 						// We have change the data, views should refresh
-						m_adapter.setFilteredTasks(false);
+						m_adapter.setFilteredTasks(mFilter, false);
 						sendBroadcast(new Intent(getPackageName()+Constants.BROADCAST_START_SYNC_TO_REMOTE));
 
 					}
@@ -550,7 +551,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 				m_app.updateWidgets();
 				m_app.setNeedToPush(true);
 				// We have change the data, views should refresh
-				m_adapter.setFilteredTasks(false);
+				m_adapter.setFilteredTasks(mFilter, false);
 				sendBroadcast(new Intent(getPackageName()+Constants.BROADCAST_START_SYNC_TO_REMOTE));
 			}
 		});
@@ -558,7 +559,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 
 	}
 
-	private void completeTasks(List<Task> tasks) {
+	public void completeTasks(List<Task> tasks) {
         TaskBag taskBag = getTaskBag();
 		for (Task t : tasks) {
 			if (t != null && !t.isCompleted()) {
@@ -586,11 +587,11 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
+		m_adapter.setFilteredTasks(mFilter, true);
 		sendBroadcast(new Intent(getPackageName()+Constants.BROADCAST_START_SYNC_TO_REMOTE));
 	}
 
-	private void undoCompleteTasks(List<Task> tasks) {
+	public void undoCompleteTasks(List<Task> tasks) {
 		for (Task t : tasks) {
 			if (t != null && t.isCompleted()) {
 				t.markIncomplete();
@@ -600,7 +601,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
 		// We have change the data, views should refresh
-		m_adapter.setFilteredTasks(true);
+		m_adapter.setFilteredTasks(mFilter, true);
 		sendBroadcast(new Intent(getPackageName()+Constants.BROADCAST_START_SYNC_TO_REMOTE));
 	}
 
@@ -644,7 +645,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
                 }
 			}
 		}
-		m_adapter.setFilteredTasks(false);
+		m_adapter.setFilteredTasks(mFilter, false);
 		getTaskBag().store();
 		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
@@ -662,7 +663,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
                 }
 			}
 		}
-		m_adapter.setFilteredTasks(false);
+		m_adapter.setFilteredTasks(mFilter, false);
 		getTaskBag().store();
 		m_app.updateWidgets();
 		m_app.setNeedToPush(true);
@@ -679,7 +680,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
                         getTaskBag().delete(t);
                     }
                 }
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks(mFilter, false);
                 getTaskBag().store();
                 m_app.updateWidgets();
                 m_app.setNeedToPush(true);
@@ -902,7 +903,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 			options_menu.findItem(R.id.search).collapseActionView();
 		}
 		clearFilter();
-		m_adapter.setFilteredTasks(false);
+		m_adapter.setFilteredTasks(mFilter, false);
 	}
 
     public ArrayList<ActiveFilter> getSavedFilter() {
@@ -1015,7 +1016,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mFilter = filters.get(position);
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks(mFilter, false);
                 if (m_drawerLayout!=null) {
                     m_drawerLayout.closeDrawer(Gravity.RIGHT);
                 }
@@ -1187,323 +1188,6 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 		mFilter.saveInIntent(i);
 		i.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivityForResult(i, REQUEST_FILTER);
-	}
-
-    private static class ViewHolder {
-		private TextView tasktext;
-		private TextView taskage;
-		private TextView taskdue;
-		private TextView taskthreshold;
-        private CheckBox cbCompleted;
-	}
-
-	public class TaskAdapter extends BaseAdapter implements ListAdapter,
-	       Filterable {
-
-		       ArrayList<Task> visibleTasks = new ArrayList<Task>();
-		       Set<DataSetObserver> obs = new HashSet<DataSetObserver>();
-		       SparseArray<String> headerTitles = new SparseArray<String>();
-		       SparseIntArray positionToIndex = new SparseIntArray();
-		       SparseIntArray indexToPosition = new SparseIntArray();
-		       int size = 0;
-		       private LayoutInflater m_inflater;
-
-		       public TaskAdapter(Context context, int textViewResourceId,
-				       LayoutInflater inflater, ListView view) {
-			       this.m_inflater = inflater;
-		       }
-
-		       void setFilteredTasks(boolean reload) {
-			       Log.v(TAG, "setFilteredTasks called, reload: " + reload);
-			       if (reload) {
-				       getTaskBag().reload();
-				       // Update lists in side drawer
-				       // Set the adapter for the list view
-				       updateDrawers();
-			       }
-
-			       visibleTasks.clear();
-			       visibleTasks.addAll(mFilter.apply(getTaskBag().getTasks()));
-			       ArrayList<String> sorts = mFilter.getSort();
-			       Collections.sort(visibleTasks, MultiComparator.create(sorts));
-			       positionToIndex.clear();
-			       indexToPosition.clear();
-			       headerTitles.clear();
-			       String header = "";
-			       String newHeader = "";
-			       int index = 0;
-			       int position = 0;
-			       int firstGroupSortIndex = 0;
-
-			       if (sorts.size() > 1 && sorts.get(0).contains("completed")
-					       || sorts.get(0).contains("future")) {
-				       firstGroupSortIndex++;
-				       if (sorts.size() > 2 && sorts.get(1).contains("completed")
-						       || sorts.get(1).contains("future")) {
-					       firstGroupSortIndex++;
-						       }
-					       }
-			       String firstSort = sorts.get(firstGroupSortIndex);
-			       for (Task t : visibleTasks) {
-				       newHeader = t.getHeader(firstSort, getString(R.string.no_header));
-				       if (!header.equals(newHeader)) {
-					       header = newHeader;
-					       // Log.v(TAG, "Start of header: " + header +
-					       // " at position: " + position);
-					       headerTitles.put(position, header);
-					       positionToIndex.put(position, -1);
-					       position++;
-				       }
-
-				       positionToIndex.put(position, index);
-				       indexToPosition.put(index, position);
-				       index++;
-				       position++;
-			       }
-			       size = position;
-			       for (DataSetObserver ob : obs) {
-				       ob.onChanged();
-			       }
-			       updateFilterBar();
-
-		       }
-
-		       @Override
-		       public void registerDataSetObserver(DataSetObserver observer) {
-			       obs.add(observer);
-               }
-
-		       /*
-			** Get the adapter position for task
-			*/
-		       public int getPosition (Task task) {
-			       int index = visibleTasks.indexOf(task);
-			       if  (index==-1 || indexToPosition.indexOfKey(index)==-1) {
-				       return index;
-			       }
-			       return indexToPosition.valueAt(indexToPosition.indexOfKey(index));
-		       }
-
-		       @Override
-		       public void unregisterDataSetObserver(DataSetObserver observer) {
-			       obs.remove(observer);
-               }
-
-		       @Override
-		       public int getCount() {
-			       return size;
-		       }
-
-		       @Override
-		       public Task getItem(int position) {
-			       if (positionToIndex.get(position,-1) == -1) {
-				       return null;
-			       }
-			       return visibleTasks.get(positionToIndex.get(position));
-		       }
-
-		       @Override
-		       public long getItemId(int position) {
-			       return position;
-		       }
-
-		       @Override
-		       public boolean hasStableIds() {
-			       return true; // To change body of implemented methods use File |
-			       // Settings | File Templates.
-		       }
-
-		       @Override
-		       public View getView(int position, View convertView, ViewGroup parent) {
-			       if (headerTitles.get(position,null) != null) {
-				       convertView = m_inflater.inflate(R.layout.list_header, null);
-				       TextView t = (TextView) convertView
-					       .findViewById(R.id.list_header_title);
-				       t.setText(headerTitles.get(position));
-
-			       } else {
-				       final ViewHolder holder;
-				       if (convertView == null) {
-					       convertView = m_inflater.inflate(R.layout.list_item, null);
-					       holder = new ViewHolder();
-					       holder.tasktext = (TextView) convertView
-						       .findViewById(R.id.tasktext);
-					       holder.taskage = (TextView) convertView
-						       .findViewById(R.id.taskage);
-					       holder.taskdue = (TextView) convertView
-						       .findViewById(R.id.taskdue);
-					       holder.taskthreshold = (TextView) convertView
-						       .findViewById(R.id.taskthreshold);
-                           holder.cbCompleted = (CheckBox) convertView
-                               .findViewById(R.id.checkBox);
-					       convertView.setTag(holder);
-				       } else {
-					       holder = (ViewHolder) convertView.getTag();
-				       }
-				       Task task;
-				       task = getItem(position);
-
-				       if (task != null) {
-					       SpannableString ss = new SpannableString(
-							       task.datelessScreenFormat());
-
-					       ArrayList<String> colorizeStrings = new ArrayList<String>();
-					       for (String context : task.getLists()) {
-						       colorizeStrings.add("@" + context);
-					       }
-					       Util.setColor(ss, Color.GRAY, colorizeStrings);
-					       colorizeStrings.clear();
-					       for (String project : task.getTags()) {
-						       colorizeStrings.add("+" + project);
-					       }
-					       Util.setColor(ss, Color.GRAY, colorizeStrings);
-
-					       Resources res = getResources();
-					       int prioColor;
-					       switch (task.getPriority()) {
-						       case A:
-							       prioColor = res.getColor(android.R.color.holo_red_dark);
-							       break;
-						       case B:
-							       prioColor = res.getColor(android.R.color.holo_orange_dark);
-							       break;
-						       case C:
-							       prioColor = res.getColor(android.R.color.holo_green_dark);
-							       break;
-						       case D:
-							       prioColor = res.getColor(android.R.color.holo_blue_dark);
-							       break;
-						       default:
-							       prioColor = res.getColor(android.R.color.darker_gray);
-					       }
-					       Util.setColor(ss, prioColor, task.getPriority()
-							       .inFileFormat());
-					       holder.tasktext.setText(ss);
-                           final ArrayList<Task> tasks = new ArrayList<Task>();
-                           tasks.add(task);
-					       if (task.isCompleted()) {
-						       // Log.v(TAG, "Striking through " + task.getText());
-						       holder.tasktext.setPaintFlags(holder.tasktext
-								       .getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-						       holder.taskage.setPaintFlags(holder.taskage
-								       .getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                               holder.cbCompleted.setChecked(true);
-                               holder.cbCompleted.setOnClickListener(new View.OnClickListener() {
-                                   @Override
-                                   public void onClick(View v) {
-                                       undoCompleteTasks(tasks);
-                                       finishActionmode();
-                                   }
-                               });
-					       } else {
-						       holder.tasktext
-							       .setPaintFlags(holder.tasktext.getPaintFlags()
-                                           & ~Paint.STRIKE_THRU_TEXT_FLAG);
-						       holder.taskage
-							       .setPaintFlags(holder.taskage.getPaintFlags()
-                                           & ~Paint.STRIKE_THRU_TEXT_FLAG);
-                               holder.cbCompleted.setChecked(false);
-                               holder.cbCompleted.setOnClickListener(new View.OnClickListener() {
-                                   @Override
-                                   public void onClick(View v) {
-                                       completeTasks(tasks);
-                                       finishActionmode();
-                                   }
-                               });
-					       }
-
-
-
-
-					       String relAge = task.getRelativeAge();
-					       SpannableString relDue = task.getRelativeDueDate(res, m_app.hasColorDueDates());
-					       String relThres = task.getRelativeThresholdDate();
-					       boolean anyDateShown = false;
-					       if (!Strings.isEmptyOrNull(relAge)) {
-						       holder.taskage.setText(relAge);
-						       anyDateShown = true;
-					       } else {
-						       holder.taskage.setText("");
-					       }
-					       if (relDue!=null) {
-						       anyDateShown = true;
-						       holder.taskdue.setText(relDue);
-					       } else {
-						       holder.taskdue.setText("");
-					       }
-					       if (!Strings.isEmptyOrNull(relThres)) {
-						       anyDateShown = true;
-						       holder.taskthreshold.setText(relThres);
-					       } else {
-						       holder.taskthreshold.setText("");
-					       }
-					       LinearLayout datesBar = (LinearLayout)convertView
-						       .findViewById(R.id.datebar);
-					       if (!anyDateShown || task.isCompleted()) {
-						       datesBar.setVisibility(View.GONE);
-						       holder.tasktext.setPadding(
-								       holder.tasktext.getPaddingLeft(),
-								       holder.tasktext.getPaddingTop(),
-								       holder.tasktext.getPaddingRight(), 4);
-					       } else {
-						       datesBar.setVisibility(View.VISIBLE);
-						       holder.tasktext.setPadding(
-								       holder.tasktext.getPaddingLeft(),
-								       holder.tasktext.getPaddingTop(),
-								       holder.tasktext.getPaddingRight(), 0);
-					       }
-				       }
-			       }
-			       return convertView;
-		       }
-
-		       @Override
-		       public int getItemViewType(int position) {
-			       if (headerTitles.get(position,null) != null) {
-				       return 0;
-			       } else {
-				       return 1;
-			       }
-		       }
-
-		       @Override
-		       public int getViewTypeCount() {
-			       return 2;
-		       }
-
-		       @Override
-		       public boolean isEmpty() {
-			       return visibleTasks.size() == 0;
-		       }
-
-		       @Override
-		       public boolean areAllItemsEnabled() {
-			       return false;
-		       }
-
-		       @Override
-		       public boolean isEnabled(int position) {
-                   return headerTitles.get(position, null) == null;
-		       }
-
-		       @Override
-		       public Filter getFilter() {
-			       return new Filter() {
-				       @Override
-				       protected FilterResults performFiltering(
-						       CharSequence charSequence) {
-					       mFilter.setSearch(charSequence.toString());
-					       //Log.v(TAG, "performFiltering: " + charSequence.toString());
-					       return null;
-						       }
-
-				       @Override
-				       protected void publishResults(CharSequence charSequence,
-						       FilterResults filterResults) {
-					       setFilteredTasks(false);
-				       }
-			       };
-		       }
 	}
 
 	class ActionBarListener implements AbsListView.MultiChoiceModeListener {
@@ -1723,7 +1407,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
                     }
                 }
                 finishActionmode();
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks(mFilter, false);
                 getTaskBag().store();
                 m_app.updateWidgets();
                 m_app.setNeedToPush(true);
@@ -1792,7 +1476,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
                     }
                 }
                 finishActionmode();
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks(mFilter, false);
                 getTaskBag().store();
                 m_app.updateWidgets();
                 m_app.setNeedToPush(true);
@@ -1845,12 +1529,12 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 				setIntent(intent);
                 adapter.notifyDataSetChanged();
                 finishActionmode();
-                m_adapter.setFilteredTasks(false);
+                m_adapter.setFilteredTasks(mFilter, false);
                 //m_drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		}
 
-    private void finishActionmode() {
+    public void finishActionmode() {
         if (actionMode!=null) {
             actionMode.finish();
         }
