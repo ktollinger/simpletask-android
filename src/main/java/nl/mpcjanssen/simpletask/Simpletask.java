@@ -1268,6 +1268,14 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 			       size = position;
                    visibleTasks.clear();
                    visibleTasks.addAll(visibleWithoutEnduring);
+                   int previousHeader = positionToIndex.size();;
+                   for (int i = headerTitles.size()-1 ; i >=0 ; i--) { 
+                       String headerString = headerTitles.valueAt(i);
+                       int headerPosition = headerTitles.keyAt(i);
+                       int count = previousHeader - headerPosition-1;
+                       headerTitles.setValueAt(i, headerString + " (" + count + ")");
+                       previousHeader = headerPosition;
+                   }
 			       for (DataSetObserver ob : obs) {
 				       ob.onChanged();
 			       }
