@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 
 
 @SuppressWarnings("serial")
@@ -498,7 +499,18 @@ public class Task implements Serializable, Comparable<Task> {
         }
     }
 
-    public String getHeader(String sort, String empty) {
+    public String getHeader(ArrayList<String> sorts, String empty) {
+        int firstGroupSortIndex = 0;
+
+        if (sorts.size() > 1 && sorts.get(0).contains("completed")
+                || sorts.get(0).contains("future")) {
+            firstGroupSortIndex++;
+            if (sorts.size() > 2 && sorts.get(1).contains("completed")
+                    || sorts.get(1).contains("future")) {
+                firstGroupSortIndex++;
+            }
+        }
+		String sort = sorts.get(firstGroupSortIndex);
         if (sort.contains("by_context")) {
             if (getLists().size() > 0) {
                 return getLists().get(0);

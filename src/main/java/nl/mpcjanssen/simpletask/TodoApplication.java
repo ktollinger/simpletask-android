@@ -288,6 +288,10 @@ public class TodoApplication extends Application implements SharedPreferences.On
         return m_prefs.getBoolean(getString(R.string.show_hidden), false);
     }
 
+    public boolean showEmptyLists() {
+        return m_prefs.getBoolean(getString(R.string.show_empty_lists), true);
+    }
+
     public String getTodoFileName() {
         String default_path;
         if (isCloudLess()) {

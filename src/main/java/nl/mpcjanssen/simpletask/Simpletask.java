@@ -1190,6 +1190,7 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 	}
 
     private static class ViewHolder {
+		private TextView taskheader;
 		private TextView tasktext;
 		private TextView taskage;
 		private TextView taskdue;
@@ -1202,9 +1203,6 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 
 		       ArrayList<Task> visibleTasks = new ArrayList<Task>();
 		       Set<DataSetObserver> obs = new HashSet<DataSetObserver>();
-		       SparseArray<String> headerTitles = new SparseArray<String>();
-		       SparseIntArray positionToIndex = new SparseIntArray();
-		       SparseIntArray indexToPosition = new SparseIntArray();
 		       int size = 0;
 		       private LayoutInflater m_inflater;
 
@@ -1226,56 +1224,15 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 			       visibleTasks.addAll(mFilter.apply(getTaskBag().getTasks()));
 			       ArrayList<String> sorts = mFilter.getSort();
 			       Collections.sort(visibleTasks, MultiComparator.create(sorts));
-			       positionToIndex.clear();
-			       indexToPosition.clear();
-			       headerTitles.clear();
-			       String header = "";
-			       String newHeader = "";
-			       int index = 0;
-			       int position = 0;
-			       int firstGroupSortIndex = 0;
-
-			       if (sorts.size() > 1 && sorts.get(0).contains("completed")
-					       || sorts.get(0).contains("future")) {
-				       firstGroupSortIndex++;
-				       if (sorts.size() > 2 && sorts.get(1).contains("completed")
-						       || sorts.get(1).contains("future")) {
-					       firstGroupSortIndex++;
-						       }
-					       }
-			       String firstSort = sorts.get(firstGroupSortIndex);
                    ArrayList<Task> visibleWithoutEnduring = new ArrayList<Task>();
 			       for (Task t : visibleTasks) {
-				       newHeader = t.getHeader(firstSort, getString(R.string.no_header));
-				       if (!header.equals(newHeader)) {
-					       header = newHeader;
-					       // Log.v(TAG, "Start of header: " + header +
-					       // " at position: " + position);
-					       headerTitles.put(position, header);
-					       positionToIndex.put(position, -1);
-					       position++;
-				       }
-                       
-                       if (!t.isHidden() || m_app.showHidden()) {
+                       if (!t.isHidden() || m_app.showHidden() || m_app.showEmptyLists()) {
                            // enduring tasks should not be displayed
                            visibleWithoutEnduring.add(t);
-                           positionToIndex.put(position, index);
-                           indexToPosition.put(index, position);
-                           index++;
-                           position++;
                        }
 			       }
-			       size = position;
                    visibleTasks.clear();
                    visibleTasks.addAll(visibleWithoutEnduring);
-                   int previousHeader = positionToIndex.size();;
-                   for (int i = headerTitles.size()-1 ; i >=0 ; i--) { 
-                       String headerString = headerTitles.valueAt(i);
-                       int headerPosition = headerTitles.keyAt(i);
-                       int count = previousHeader - headerPosition-1;
-                       headerTitles.setValueAt(i, headerString + " (" + count + ")");
-                       previousHeader = headerPosition;
-                   }
 			       for (DataSetObserver ob : obs) {
 				       ob.onChanged();
 			       }
@@ -1288,15 +1245,9 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 			       obs.add(observer);
                }
 
-		       /*
-			** Get the adapter position for task
-			*/
 		       public int getPosition (Task task) {
 			       int index = visibleTasks.indexOf(task);
-			       if  (index==-1 || indexToPosition.indexOfKey(index)==-1) {
-				       return index;
-			       }
-			       return indexToPosition.valueAt(indexToPosition.indexOfKey(index));
+				   return index;
 		       }
 
 		       @Override
@@ -1306,15 +1257,12 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 
 		       @Override
 		       public int getCount() {
-			       return size;
+			       return visibleTasks.size();
 		       }
 
 		       @Override
 		       public Task getItem(int position) {
-			       if (positionToIndex.get(position,-1) == -1) {
-				       return null;
-			       }
-			       return visibleTasks.get(positionToIndex.get(position));
+			       return visibleTasks.get(position);
 		       }
 
 		       @Override
@@ -1330,17 +1278,14 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 
 		       @Override
 		       public View getView(int position, View convertView, ViewGroup parent) {
-			       if (headerTitles.get(position,null) != null) {
-				       convertView = m_inflater.inflate(R.layout.list_header, null);
-				       TextView t = (TextView) convertView
-					       .findViewById(R.id.list_header_title);
-				       t.setText(headerTitles.get(position));
+                   final ViewHolder holder;
+                   Task task;
 
-			       } else {
-				       final ViewHolder holder;
 				       if (convertView == null) {
 					       convertView = m_inflater.inflate(R.layout.list_item, null);
 					       holder = new ViewHolder();
+					       holder.taskheader = (TextView) convertView
+						       .findViewById(R.id.taskheader);
 					       holder.tasktext = (TextView) convertView
 						       .findViewById(R.id.tasktext);
 					       holder.taskage = (TextView) convertView
@@ -1355,7 +1300,6 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 				       } else {
 					       holder = (ViewHolder) convertView.getTag();
 				       }
-				       Task task;
 				       task = getItem(position);
 
 				       if (task != null) {
@@ -1468,37 +1412,50 @@ public class Simpletask extends ListActivity  implements AdapterView.OnItemLongC
 								       holder.tasktext.getPaddingRight(), 0);
 					       }
 				       }
-			       }
+                   String header = task.getHeader(mFilter.getSort(), getString(R.string.no_header));
+                   String previousHeader = null;
+                   if (position != 0 ) {
+                       previousHeader = visibleTasks.get(position-1).getHeader(mFilter.getSort(), getString(R.string.no_header));
+                   }
+                   if (!header.equals(previousHeader)) {
+                       holder.taskheader.setText(header);
+                       holder.taskheader.setVisibility(View.VISIBLE);
+                   } else {
+                       holder.taskheader.setVisibility(View.GONE);
+                   }
+                   LinearLayout taskLine = (LinearLayout)convertView.findViewById(R.id.taskline);
+                   if (task.isHidden() && !m_app.showHidden()) {
+                       taskLine.setVisibility(View.GONE);
+                   } else {
+                       taskLine.setVisibility(View.VISIBLE);
+                   }
+
 			       return convertView;
 		       }
 
 		       @Override
 		       public int getItemViewType(int position) {
-			       if (headerTitles.get(position,null) != null) {
 				       return 0;
-			       } else {
-				       return 1;
-			       }
 		       }
 
 		       @Override
 		       public int getViewTypeCount() {
-			       return 2;
+			       return 1;
 		       }
 
 		       @Override
 		       public boolean isEmpty() {
-			       return visibleTasks.size() == 0;
+			       return getCount() == 0;
 		       }
 
 		       @Override
 		       public boolean areAllItemsEnabled() {
-			       return false;
+			       return true;
 		       }
 
 		       @Override
 		       public boolean isEnabled(int position) {
-                   return headerTitles.get(position, null) == null;
+                   return true;
 		       }
 
 		       @Override
