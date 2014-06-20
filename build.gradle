@@ -25,8 +25,8 @@ android {
     compileSdkVersion 19
 
     defaultConfig {
-        versionName '4.2.4'
-        versionCode 1090
+        versionName '4.2.3'
+        versionCode 1089
 	    minSdkVersion 14
         targetSdkVersion 19
     }
@@ -37,9 +37,11 @@ android {
         // completion of the test run
         unit {
             applicationId 'nl.mpcjanssen.simpletask.test'
+            buildConfigField "boolean", "CLOUDLESS", "true"
         }
         cloudless {
             applicationId 'nl.mpcjanssen.simpletask'
+            buildConfigField "boolean", "CLOUDLESS", "true"
         }
     }
 
