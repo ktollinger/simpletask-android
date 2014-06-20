@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.FileObserver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -30,6 +31,8 @@ public class FileStore implements FileStoreInterface {
 
     private final String TAG = getClass().getName();
     private FileObserver m_observer;
+    private Context mCtx;
+    private ArrayList<String> lines;
 
     public FileStore(Context ctx, String todoFile) {
         this.init(ctx, todoFile);
@@ -58,9 +61,11 @@ public class FileStore implements FileStoreInterface {
     @Override
     public ArrayList<String> get(TaskBag.Preferences preferences) {
         try {
-            return TaskIo.loadFromFile(mTodoFile, preferences);
+            lines.addAll(TaskIo.loadFromFile(mTodoFile, preferences));
+            return lines;
         } catch (IOException e) {
             ArrayList<String> failed = new ArrayList<String>();
+            lines = failed;
             return failed;
         }
     }
@@ -73,11 +78,6 @@ public class FileStore implements FileStoreInterface {
     @Override
     public void append(String data) {
         TaskIo.writeToFile(data,mTodoFile,true);
-
-    }
-
-    @Override
-    public void prepend(String data) {
 
     }
 
@@ -98,12 +98,18 @@ public class FileStore implements FileStoreInterface {
                                 event == FileObserver.MODIFY ||
                                 event == FileObserver.MOVED_TO) {
                             Log.v(TAG, path + " modified...update UI");
+                            merge(path);
                             broadCastManager.sendBroadcast(intent);
                         }
                     }
                 }
             };
         }
+    }
+
+    private void merge(String path) {
+        Toast.makeText(mCtx, "File changed merging", Toast.LENGTH_SHORT);
+
     }
 
     @Override
