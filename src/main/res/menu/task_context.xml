@@ -91,6 +91,10 @@ You should have received a copy of the GNU General Public License along with Tod
         android:showAsAction="never"
         />
     <item
+        android:id="@+id/file_link"
+        android:showAsAction="never"
+        android:visible="false" />
+    <item
         android:id="@+id/url"
         android:showAsAction="never"
         android:visible="false" />

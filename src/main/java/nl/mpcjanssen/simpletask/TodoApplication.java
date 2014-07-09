@@ -43,6 +43,7 @@ import android.view.Window;
 import android.widget.EditText;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import nl.mpcjanssen.simpletask.remote.FileStore;
 import nl.mpcjanssen.simpletask.remote.FileStoreInterface;
@@ -59,6 +60,7 @@ public class TodoApplication extends Application implements SharedPreferences.On
     private FileStoreInterface mFileStore;
     private TaskCache m_taskCache;
     private BroadcastReceiver m_broadcastReceiver;
+    private ArrayList<String> mBreadCrumbs = new ArrayList<String>();
 
     public static Context getAppContext() {
         return m_appContext;
@@ -400,14 +402,29 @@ public class TodoApplication extends Application implements SharedPreferences.On
                 new FileStoreInterface.FileSelectedListener() {
                     @Override
                     public void fileSelected(String file) {
-                        setTodoFile(file);
-                        mFileStore.invalidateCache();
-                        localBroadcastManager.sendBroadcast(new Intent(Constants.BROADCAST_FILE_CHANGED));
+                        openTodoFile(file, true);
                     }
                 });
     }
 
+    public void openTodoFile(String file, boolean addBreadcrumb) {
+        if (addBreadcrumb) {
+            mBreadCrumbs.add(getTodoFileName());
+        }
+        setTodoFile(file);
+        mFileStore.invalidateCache();
+        localBroadcastManager.sendBroadcast(new Intent(Constants.BROADCAST_FILE_CHANGED));
+    }
+
     public String getDoneFileName() {
         return new File(getTodoFileName()).getParent()+"/done.txt";
+    }
+
+    public String previousFile() {
+        int size = mBreadCrumbs.size();
+        if (size>0) {
+            return mBreadCrumbs.remove(size-1);
+        }
+        return null;
     }
 }

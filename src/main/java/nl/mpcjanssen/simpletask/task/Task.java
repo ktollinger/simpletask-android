@@ -58,6 +58,8 @@ public class Task implements Serializable, Comparable<Task> {
             .compile("^\\+(\\S*\\w)(.*)");
     private static final Pattern HIDDEN_PATTERN = Pattern
             .compile("^[Hh]:([01])(.*)");
+    private static final Pattern FILE_LINK_PATTERN = Pattern
+            .compile("^[Ll][Ii][Nn][Kk]:([A-Za-z0-9./]+)(.*)");
     private static final Pattern DUE_PATTERN = Pattern
             .compile("^[Dd][Uu][Ee]:(\\d{4}-\\d{2}-\\d{2})(.*)");
     private static final Pattern THRESHOLD_PATTERN = Pattern
@@ -355,6 +357,17 @@ public class Task implements Serializable, Comparable<Task> {
         this.update("");
     }
 
+    public ArrayList<String> getFileLinks() {
+        ArrayList<String> result = new ArrayList<String>();
+        for (Token token: mTokens) {
+            if (token.type == Token.FILE_LINK) {
+                result.add(((FILE_LINK)token).link);
+            }
+        }
+        return result;
+
+    }
+
     public String showParts(int flags) {
         StringBuilder sb = new StringBuilder();
         for (Token token: mTokens) {
@@ -649,6 +662,14 @@ public class Task implements Serializable, Comparable<Task> {
                 } else {
                     mIsHidden = false;
                 }
+                continue;
+            }
+            m = FILE_LINK_PATTERN.matcher(remaining);
+            if (m.matches()) {
+                String match = m.group(1);
+                remaining = m.group(2);
+                Token tok = new FILE_LINK(match);
+                mTokens.add(tok);
                 continue;
             }
             if (!remaining.startsWith(" ")) {

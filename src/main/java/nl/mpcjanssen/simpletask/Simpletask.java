@@ -51,8 +51,6 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -110,6 +108,16 @@ public class Simpletask extends ThemedListActivity implements
     private void showHelp() {
         Intent i = new Intent(this, HelpScreen.class);
         startActivity(i);
+    }
+
+    @Override
+    public void onBackPressed() {
+        String name = m_app.previousFile();
+        if (name!=null) {
+            m_app.openTodoFile(name, false);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -192,7 +200,6 @@ public class Simpletask extends ThemedListActivity implements
 
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
-
         m_app.prefsChangeListener(this);
 
         final IntentFilter intentFilter = new IntentFilter();
@@ -1009,6 +1016,7 @@ public class Simpletask extends ThemedListActivity implements
 
         void setFilteredTasks() {
             ArrayList<Task> visibleTasks;
+            setTitle(new File(m_app.getTodoFileName()).getName());
             Log.v(TAG, "setFilteredTasks called: " + getTaskBag());
             ArrayList<String> sorts = mFilter.getSort(m_app.getDefaultSorts());
             visibleTasks = getTaskBag().getTasks(mFilter, sorts);
@@ -1309,6 +1317,10 @@ public class Simpletask extends ThemedListActivity implements
                     menu.add(Menu.CATEGORY_SECONDARY, R.id.phone_number,
                             Menu.NONE, s);
                 }
+                for (String s : t.getFileLinks()) {
+                    menu.add(Menu.CATEGORY_SECONDARY, R.id.file_link, Menu.NONE,
+                            s.toString());
+                }
                 for (String s : t.getMailAddresses()) {
                     menu.add(Menu.CATEGORY_SECONDARY, R.id.mail, Menu.NONE, s);
                 }
@@ -1410,6 +1422,12 @@ public class Simpletask extends ThemedListActivity implements
                     intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME,
                             calDate.getTimeInMillis() + 60 * 60 * 1000);
                     startActivity(intent);
+                    break;
+                case R.id.file_link:
+                    Log.v(TAG, "link: " + item.getTitle().toString());
+                    File currentDir = new File(m_app.getTodoFileName()).getParentFile();
+                    File toOpen = new File(currentDir,item.getTitle().toString()+".txt");
+                    m_app.openTodoFile(toOpen.getAbsolutePath(), true);
                     break;
                 case R.id.url:
                     Log.v(TAG, "url: " + item.getTitle().toString());
