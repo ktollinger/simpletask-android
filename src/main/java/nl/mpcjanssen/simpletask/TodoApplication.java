@@ -408,4 +408,19 @@ public class TodoApplication extends Application implements SharedPreferences.On
     public String getDoneFileName() {
         return new File(getTodoFile().getParentFile(), "done.txt").getAbsolutePath();
     }
+
+    public void exportFiltersToFile(String contents) {
+        if (mFileStore==null) {
+            return;
+        }
+        mFileStore.write(new File(getTodoFile().getParentFile(),"saved_filters.txt"), contents);
+    }
+
+    public boolean initialSyncDone() {
+        if (mFileStore==null) {
+            return false;
+        } else {
+            return mFileStore.initialSyncDone();
+        }
+    }
 }

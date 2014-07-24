@@ -13,6 +13,7 @@ import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -106,6 +107,7 @@ public class Simpletask extends ThemedListActivity implements
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
     private Bundle m_savedInstanceState;
+    private ProgressDialog m_sync_dialog;
 
     private void showHelp() {
         Intent i = new Intent(this, HelpScreen.class);
@@ -238,28 +240,6 @@ public class Simpletask extends ThemedListActivity implements
             }
         };
         localBroadcastManager.registerReceiver(m_broadcastReceiver, intentFilter);
-
-
-        // Set the proper theme
-        setTheme(m_app.getActiveTheme());
-        if (m_app.hasLandscapeDrawers()) {
-            setContentView(R.layout.main_landscape);
-        } else {
-            setContentView(R.layout.main);
-        }
-
-        // Replace drawables if the theme is dark
-        if (m_app.isDarkTheme()) {
-            ImageView actionBarIcon = (ImageView) findViewById(R.id.actionbar_icon);
-            if (actionBarIcon != null) {
-                actionBarIcon.setImageResource(R.drawable.labels);
-            }
-            ImageView actionBarClear = (ImageView) findViewById(R.id.actionbar_clear);
-            if (actionBarClear != null) {
-                actionBarClear.setImageResource(R.drawable.cancel);
-            }
-        }
-        setProgressBarIndeterminateVisibility(false);
     }
 
     private void handleIntent() {
@@ -268,6 +248,7 @@ public class Simpletask extends ThemedListActivity implements
             startLogin();
             return;
         }
+
         mFilter = new ActiveFilter();
 
         m_leftDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -357,6 +338,15 @@ public class Simpletask extends ThemedListActivity implements
                 }
             }
             lv.setSelectionFromTop(position,0);
+        }
+        if (!m_app.initialSyncDone()) {
+            m_sync_dialog = new ProgressDialog(this,m_app.getActiveTheme());
+            m_sync_dialog.setIndeterminate(true);
+            m_sync_dialog.setMessage("Initial Dropbox sync in progress, please wait....");
+            m_sync_dialog.setCancelable(false);
+            m_sync_dialog.show();
+        } else if (m_sync_dialog!=null) {
+            m_sync_dialog.cancel();
         }
     }
 
@@ -712,6 +702,7 @@ public class Simpletask extends ThemedListActivity implements
                             mFilter.setName(value);
                             mFilter.saveInPrefs(test_filter_prefs);
                             updateRightDrawer();
+                            exportFilters();
                         }
                     }
                 }
@@ -875,6 +866,7 @@ public class Simpletask extends ThemedListActivity implements
             Log.w(TAG, "Failed to delete saved filter: " + deleted_filter.getName());
         }
         updateRightDrawer();
+        exportFilters();
     }
 
     private void updateSavedFilter(String prefsName) {
@@ -885,6 +877,7 @@ public class Simpletask extends ThemedListActivity implements
         mFilter.setName(filterName);
         mFilter.saveInPrefs(filter_pref);
         updateRightDrawer();
+        exportFilters();
     }
 
     private void renameSavedFilter(String prefsName) {
@@ -917,6 +910,7 @@ public class Simpletask extends ThemedListActivity implements
                             mFilter.setName(value);
                             mFilter.saveInPrefs(filter_pref);
                             updateRightDrawer();
+                            exportFilters();
                         }
                     }
                 }
@@ -929,6 +923,16 @@ public class Simpletask extends ThemedListActivity implements
         });
 
         alert.show();
+    }
+
+    private void exportFilters() {
+        StringBuilder contents = new StringBuilder();
+        for (ActiveFilter f : getSavedFilter()) {
+            contents.append(f.inFileFormat(m_app.getEol()));
+            contents.append(m_app.getEol());
+        }
+        contents.append(m_app.getEol());
+        m_app.exportFiltersToFile(contents.toString());
     }
 
 

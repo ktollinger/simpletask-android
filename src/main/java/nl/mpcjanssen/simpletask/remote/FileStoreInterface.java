@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public interface FileStoreInterface {
     void move(String sourcePath, String targetPath, ArrayList<String> strings);
     void setEol(String eol);
     boolean isSyncing();
+    boolean write(File path, String contents);
+    boolean initialSyncDone();
 
     void invalidateCache();
 

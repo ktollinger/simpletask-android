@@ -74,6 +74,23 @@ public class ActiveFilter {
         return Util.join(m_sorts,",");
     }
 
+    public String inFileFormat(String eol) {
+        StringBuilder sb = new StringBuilder();
+        if (mName!=null) {
+            sb.append(INTENT_TITLE);
+            sb.append("\t");
+            sb.append(mName);
+            sb.append(eol);
+        }
+        if (m_contexts!=null) {
+            sb.append(INTENT_CONTEXTS_FILTER);
+            sb.append("\t");
+            sb.append(Util.join(m_contexts,","));
+            sb.append(eol);
+        }
+        return sb.toString();
+    }
+
     public void setPrefName(String mPrefName) {
         this.mPrefName = mPrefName;
     }
