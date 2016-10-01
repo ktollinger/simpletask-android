@@ -7,9 +7,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
 import android.support.v7.widget.Toolbar
-import android.view.Menu
 import android.widget.ScrollView
 import android.widget.TextView
 import nl.mpcjanssen.simpletask.dao.Daos
@@ -79,7 +77,6 @@ class HistoryScreen : ThemedActionBarActivity() {
         get() = File(Daos.daoSession.database.path)
 
     fun initToolbar(): Boolean {
-
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         val inflater = menuInflater
         toolbar.menu.clear()
