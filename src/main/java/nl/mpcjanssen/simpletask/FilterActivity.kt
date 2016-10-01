@@ -16,16 +16,13 @@ import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
-import nl.mpcjanssen.simpletask.remote.FileStore
-import nl.mpcjanssen.simpletask.remote.FileStoreInterface
+
 import nl.mpcjanssen.simpletask.task.Priority
 import nl.mpcjanssen.simpletask.task.TodoList
 import nl.mpcjanssen.simpletask.util.*
-import java.io.File
-import java.io.IOException
 import java.util.*
 
-class FilterActivity : ThemedActivity() {
+class FilterActivity : ThemedNoActionBarActivity() {
 
     internal var asWidgetConfigure = false
     internal var asWidgetReConfigure = false
@@ -207,34 +204,8 @@ class FilterActivity : ThemedActivity() {
             } else {
                 applyFilter()
             }
-            R.id.menu_filter_load_script -> openScript(object : FileStoreInterface.FileReadListener {
-                override fun fileRead(contents: String?) {
-                    runOnMainThread(
-                            Runnable { setScript(contents) })
-                }
-            })
         }
         return true
-    }
-
-    private fun openScript(file_read: FileStoreInterface.FileReadListener) {
-        runOnMainThread(Runnable {
-            val dialog = FileStore.FileDialog(this@FilterActivity, File(Config.todoFileName).parent, false)
-            dialog.addFileListener(object : FileStoreInterface.FileSelectedListener {
-                override fun fileSelected(file: String) {
-                    Thread(Runnable {
-                        try {
-
-                            FileStore.readFile(file, file_read)
-                        } catch (e: IOException) {
-                            showToastShort(this@FilterActivity, "Failed to load script.")
-                            e.printStackTrace()
-                        }
-                    }).start()
-                }
-            })
-            dialog.createFileDialog(this@FilterActivity, FileStore)
-        })
     }
 
     private fun createFilterIntent(): Intent {

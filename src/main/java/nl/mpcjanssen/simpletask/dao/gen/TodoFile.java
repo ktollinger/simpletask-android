@@ -9,8 +9,6 @@ public class TodoFile {
     /** Not-null value. */
     private String contents;
     /** Not-null value. */
-    private String name;
-    /** Not-null value. */
     private java.util.Date date;
 
     public TodoFile() {
@@ -20,9 +18,8 @@ public class TodoFile {
         this.contents = contents;
     }
 
-    public TodoFile(String contents, String name, java.util.Date date) {
+    public TodoFile(String contents, java.util.Date date) {
         this.contents = contents;
-        this.name = name;
         this.date = date;
     }
 
@@ -34,16 +31,6 @@ public class TodoFile {
     /** Not-null value; ensure this value is available before it is saved to the database. */
     public void setContents(String contents) {
         this.contents = contents;
-    }
-
-    /** Not-null value. */
-    public String getName() {
-        return name;
-    }
-
-    /** Not-null value; ensure this value is available before it is saved to the database. */
-    public void setName(String name) {
-        this.name = name;
     }
 
     /** Not-null value. */

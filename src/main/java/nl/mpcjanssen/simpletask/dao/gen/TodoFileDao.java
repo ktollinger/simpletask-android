@@ -24,8 +24,7 @@ public class TodoFileDao extends AbstractDao<TodoFile, String> {
     */
     public static class Properties {
         public final static Property Contents = new Property(0, String.class, "contents", true, "CONTENTS");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
-        public final static Property Date = new Property(2, java.util.Date.class, "date", false, "DATE");
+        public final static Property Date = new Property(1, java.util.Date.class, "date", false, "DATE");
     };
 
 
@@ -42,8 +41,7 @@ public class TodoFileDao extends AbstractDao<TodoFile, String> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"TODO_FILE\" (" + //
                 "\"CONTENTS\" TEXT PRIMARY KEY NOT NULL ," + // 0: contents
-                "\"NAME\" TEXT NOT NULL ," + // 1: name
-                "\"DATE\" INTEGER NOT NULL );"); // 2: date
+                "\"DATE\" INTEGER NOT NULL );"); // 1: date
     }
 
     /** Drops the underlying database table. */
@@ -57,8 +55,7 @@ public class TodoFileDao extends AbstractDao<TodoFile, String> {
     protected void bindValues(SQLiteStatement stmt, TodoFile entity) {
         stmt.clearBindings();
         stmt.bindString(1, entity.getContents());
-        stmt.bindString(2, entity.getName());
-        stmt.bindLong(3, entity.getDate().getTime());
+        stmt.bindLong(2, entity.getDate().getTime());
     }
 
     /** @inheritdoc */
@@ -72,8 +69,7 @@ public class TodoFileDao extends AbstractDao<TodoFile, String> {
     public TodoFile readEntity(Cursor cursor, int offset) {
         TodoFile entity = new TodoFile( //
             cursor.getString(offset + 0), // contents
-            cursor.getString(offset + 1), // name
-            new java.util.Date(cursor.getLong(offset + 2)) // date
+            new java.util.Date(cursor.getLong(offset + 1)) // date
         );
         return entity;
     }
@@ -82,8 +78,7 @@ public class TodoFileDao extends AbstractDao<TodoFile, String> {
     @Override
     public void readEntity(Cursor cursor, TodoFile entity, int offset) {
         entity.setContents(cursor.getString(offset + 0));
-        entity.setName(cursor.getString(offset + 1));
-        entity.setDate(new java.util.Date(cursor.getLong(offset + 2)));
+        entity.setDate(new java.util.Date(cursor.getLong(offset + 1)));
      }
     
     /** @inheritdoc */

@@ -34,17 +34,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    productFlavors {
-        dropbox {
-            applicationId 'nl.mpcjanssen.todotxtholo'
-	    manifestPlaceholders = [ providerFlavour:"dropbox"]
-        }
-        cloudless {
-            applicationId 'nl.mpcjanssen.simpletask'
-	    manifestPlaceholders = [ providerFlavour:"cloudless"]
-        }
-    }
-
     signingConfigs {
         release {
             keyAlias = "mpcjanssen.nl"
@@ -78,7 +67,6 @@ repositories {
 }
 
 dependencies {
-    dropboxCompile fileTree(dir: 'libs', include: '*.jar')
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.android.support:support-v4:$android_support_version"
     compile "com.android.support:design:$android_support_version"

@@ -8,9 +8,7 @@ import nl.mpcjanssen.simpletask.CalendarSync
 import nl.mpcjanssen.simpletask.LuaInterpreter
 import nl.mpcjanssen.simpletask.R
 import nl.mpcjanssen.simpletask.TodoApplication
-import nl.mpcjanssen.simpletask.remote.FileStore
-import java.io.File
-import java.io.IOException
+
 
 object Config : SharedPreferences.OnSharedPreferenceChangeListener {
     val prefs = PreferenceManager.getDefaultSharedPreferences(TodoApplication.app)!!
@@ -24,10 +22,6 @@ object Config : SharedPreferences.OnSharedPreferenceChangeListener {
 
     fun useTodoTxtTerms(): Boolean {
         return prefs.getBoolean(getString(R.string.ui_todotxt_terms), false)
-    }
-
-    fun showTxtOnly(): Boolean {
-        return prefs.getBoolean(getString(R.string.show_txt_only), false)
     }
 
     val isSyncDues: Boolean
@@ -55,12 +49,6 @@ object Config : SharedPreferences.OnSharedPreferenceChangeListener {
             } else {
                 return getString(R.string.project_prompt)
             }
-        }
-
-    var currentVersionId : String?
-        get() = prefs.getString(getString(R.string.file_current_version_id), null)
-        set(version) {
-            prefs.edit().putString(getString(R.string.file_current_version_id), version).commit()
         }
 
     var lastScrollPosition : Int
@@ -93,10 +81,6 @@ object Config : SharedPreferences.OnSharedPreferenceChangeListener {
     var isCapitalizeTasks: Boolean
         get() = prefs.getBoolean(getString(R.string.capitalize_tasks), true)
         set(bool) = prefs.edit().putBoolean(getString(R.string.capitalize_tasks), bool).apply()
-
-    fun showTodoPath(): Boolean {
-        return prefs.getBoolean(getString(R.string.show_todo_path), false)
-    }
 
 
     fun backClearsFilter(): Boolean {
@@ -184,14 +168,6 @@ object Config : SharedPreferences.OnSharedPreferenceChangeListener {
     private val activeThemeString: String
         get() = interpreter.configTheme() ?: prefs.getString(getString(R.string.theme_pref_key), "light_darkactionbar")
 
-    // Only used in Dropbox build
-    @Suppress("unused")
-    var fullDropBoxAccess: Boolean
-        @SuppressWarnings("unused")
-        get() = prefs.getBoolean(getString(R.string.dropbox_full_access), true)
-        set(full) {
-            prefs.edit().putBoolean(getString(R.string.dropbox_full_access), full).commit()
-        }
 
     val dateBarRelativeSize: Float
         get() {
@@ -248,35 +224,6 @@ object Config : SharedPreferences.OnSharedPreferenceChangeListener {
     val defaultSorts: Array<String>
         get() = TodoApplication.app.resources.getStringArray(R.array.sortKeys)
 
-    val todoFileName: String
-        get() {
-            var name = prefs.getString(getString(R.string.todo_file_key), null)
-            if (name == null) {
-                name = FileStore.getDefaultPath()
-                setTodoFile(name)
-            }
-            val todoFile = File(name)
-            try {
-                return todoFile.canonicalPath
-            } catch (e: IOException) {
-                return FileStore.getDefaultPath()
-            }
-
-        }
-
-    val todoFile: File
-        get() = File(todoFileName)
-
-    @SuppressLint("CommitPrefEdits")
-    fun setTodoFile(todo: String) {
-        val edit = prefs.edit()
-        edit.putString(getString(R.string.todo_file_key), todo)
-        edit.remove(getString(R.string.file_current_version_id))
-        edit.commit()
-    }
-
-    val isAutoArchive: Boolean
-        get() = prefs.getBoolean(getString(R.string.auto_archive_pref_key), false)
 
     fun hasPrependDate(): Boolean {
         return prefs.getBoolean(getString(R.string.prepend_date_pref_key), true)

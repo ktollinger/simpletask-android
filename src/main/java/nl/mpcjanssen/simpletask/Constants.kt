@@ -31,17 +31,13 @@ object Constants {
     // Constants for creating shortcuts
     const val INTENT_SELECTED_TASK_LINE = "SELECTED_TASK_LINE"
 
-    const val BROADCAST_ACTION_ARCHIVE = "ACTION_ARCHIVE"
-    const val BROADCAST_ACTION_LOGOUT = "ACTION_LOGOUT"
     const val BROADCAST_UPDATE_UI = "UPDATE_UI"
     const val BROADCAST_UPDATE_WIDGETS = "UPDATE_WIDGETS"
-    const val BROADCAST_FILE_CHANGED = "FILE_CHANGED"
+
     const val BROADCAST_THEME_CHANGED = "THEME_CHANGED"
     const val BROADCAST_DATEBAR_SIZE_CHANGED = "DATEBAR_SIZE_CHANGED"
-    const val BROADCAST_SYNC_START = "SYNC_START"
-    const val BROADCAST_SYNC_DONE = "SYNC_DONE"
+
     const val BROADCAST_HIGHLIGHT_SELECTION = "HIGHLIGHT_SELECTION"
-    const val BROADCAST_UPDATE_PENDING_CHANGES = "PENDING_CHANGES_UPDATED"
 
     // Sharing constants
     const val SHARE_FILE_NAME = "simpletask.txt"
@@ -60,14 +56,6 @@ object Constants {
 
     // Android OS specific constants
     const val ANDROID_EVENT = "vnd.android.cursor.item/event"
-
-    // Supported backends
-    const val STORE_DROPBOX = 0
-    const val STORE_SDCARD = 1
-
-    // Help pages
-    const val HELP_INDEX = "index.en.md"
-    const val HELP_ADD_TASK = "addtask.en.md"
 
 }
 

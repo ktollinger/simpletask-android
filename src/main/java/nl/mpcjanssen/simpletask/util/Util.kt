@@ -382,11 +382,11 @@ fun sortWithPrefix(items: Set<String>, caseSensitive: Boolean, prefix: String?):
 fun appVersion(ctx: Context): String {
     val packageInfo = ctx.packageManager.getPackageInfo(
             ctx.packageName, 0)
-    return "Simpletask " + BuildConfig.FLAVOR + " v" + packageInfo.versionName + " (" + BuildConfig.VERSION_CODE + ")"
+    return "Simpletask " + " v" + packageInfo.versionName + " (" + BuildConfig.VERSION_CODE + ")"
 }
 
 fun shortAppVersion(): String {
-    return "${BuildConfig.FLAVOR.first()}${BuildConfig.VERSION_CODE}"
+    return "${BuildConfig.VERSION_CODE}"
 }
 
 fun shareText(act: Activity, subject: String, text: String) {
@@ -592,11 +592,6 @@ fun ArrayList<HashSet<String>>.intersection(): Set<String> {
         }
     }
     return intersection
-}
-
-fun broadcastFileChanged(broadcastManager: LocalBroadcastManager) {
-    log.info(TAG, "Sending file changed broadcast")
-    broadcastManager.sendBroadcast(Intent(Constants.BROADCAST_FILE_CHANGED))
 }
 
 fun broadcastRefreshUI(broadcastManager: LocalBroadcastManager) {

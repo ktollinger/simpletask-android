@@ -118,7 +118,6 @@ You should have received a copy of the GNU General Public License along with Tod
 
     <!-- Preference keys -->
     <string name="sort_complete_last_pref_key"    translatable="false">todotxtsortcompletelast</string>
-    <string name="auto_archive_pref_key"          translatable="false">todotxtautoarchive</string>
     <string name="default_sort_pref_key"          translatable="false">default_sort</string>
     <string name="prepend_date_pref_key"          translatable="false">todotxtprependdate</string>
     <string name="line_breaks_pref_key"           translatable="false">linebreakspref</string>
@@ -147,7 +146,6 @@ You should have received a copy of the GNU General Public License along with Tod
     <string name="widget_background_transparency" translatable="false">widget_background_transparency</string>
     <string name="last_open_filter_tab"           translatable="false">last_open_filter_tab</string>
     <string name="capitalize_tasks"               translatable="false">capitalize_tasks</string>
-    <string name="show_txt_only"                  translatable="false">show_txt_only</string>
     <string name="calendar_sync_screen"           translatable="false">calendar_sync_screen</string>
     <string name="calendar_sync_dues"             translatable="false">calendar_sync_dues</string>
     <string name="calendar_sync_thresholds"       translatable="false">calendar_sync_thresholds</string>
@@ -155,14 +153,11 @@ You should have received a copy of the GNU General Public License along with Tod
     <string name="calendar_reminder_time"         translatable="false">calendar_reminder_time</string>
     <string name="ui_sort_case_sensitive"         translatable="false">ui_sort_case_sensitive</string>
     <string name="ui_todotxt_terms">ui_todo_txt_terms</string>
-    <string name="show_todo_path"                 translatable="false">show_todo_path</string>
     <string name="back_clears_filter"             translatable="false">back_clears_filter</string>
     <string name="keep_prio"                      translatable="false">todotxt_completion</string>
     <string name="dropbox_full_access"            translatable="false">dropbox_full_access</string>
     <string name="share_task_show_edit"           translatable="false">share_task_show_edit</string>
     <string name="append_tasks_at_end"            translatable="false">append_tasks_at_end</string>
-    <string name="file_current_version_id"        translatable="false">file_current_version_id</string>
-    <string name="dropbox_latest_cursor"          translatable="false">dropbox_latest_cursor</string>
     <string name="font_size"                      translatable="false">font_size</string>
     <string name="font_key"                       translatable="false">font_key</string>
     <string name="datebar_relative_size"          translatable="false">datebar_delta_sp</string>

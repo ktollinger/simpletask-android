@@ -34,7 +34,7 @@ import nl.mpcjanssen.simpletask.util.*
 import java.util.*
 
 
-class AddTask : ThemedActivity() {
+class AddTask : ThemedNoActionBarActivity() {
 
     private val share_text: String? = null
 
@@ -42,7 +42,6 @@ class AddTask : ThemedActivity() {
 
     private lateinit var textInputField: EditText
     private var m_broadcastReceiver: BroadcastReceiver? = null
-    private var localBroadcastManager: LocalBroadcastManager? = null
     private val log = Logger
 
 
@@ -56,23 +55,6 @@ class AddTask : ThemedActivity() {
         val mFilter = ActiveFilter(FilterOptions(luaModule = "addtask"))
         mFilter.initFromIntent(intent)
 
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(Constants.BROADCAST_UPDATE_UI)
-        intentFilter.addAction(Constants.BROADCAST_SYNC_START)
-        intentFilter.addAction(Constants.BROADCAST_SYNC_DONE)
-
-        localBroadcastManager = TodoApplication.app.localBroadCastManager
-
-        m_broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == Constants.BROADCAST_SYNC_START) {
-                    setProgressBarIndeterminateVisibility(true)
-                } else if (intent.action == Constants.BROADCAST_SYNC_DONE) {
-                    setProgressBarIndeterminateVisibility(false)
-                }
-            }
-        }
-        localBroadcastManager!!.registerReceiver(m_broadcastReceiver, intentFilter)
         window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
         setContentView(R.layout.add_task)
         val toolbar = findViewById(R.id.addtask_actionbar) as Toolbar
@@ -312,9 +294,8 @@ class AddTask : ThemedActivity() {
             todoList.remove(t)
         }
 
-
         // Save
-        todoList.notifyChanged(Config.todoFileName, Config.eol, TodoApplication.app, true)
+        todoList.notifyChanged()
         finish()
     }
 
@@ -635,13 +616,6 @@ class AddTask : ThemedActivity() {
         }
         textInputField.text.replace(Math.min(start, end), Math.max(start, end),
                 text, 0, text.length)
-    }
-
-    public override fun onDestroy() {
-        super.onDestroy()
-        if (localBroadcastManager != null) {
-            localBroadcastManager!!.unregisterReceiver(m_broadcastReceiver)
-        }
     }
 
     companion object {

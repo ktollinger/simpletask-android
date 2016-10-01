@@ -65,11 +65,6 @@ data class AppWidgetRemoteViewsFactory(val intent: Intent) : RemoteViewsService.
 
     fun setFilteredTasks() {
         log.debug(TAG, "Widget $widgetId: setFilteredTasks called")
-
-        if (!TodoApplication.app.isAuthenticated) {
-            log.debug(TAG, "TodoApplication.app is not authenticated")
-            return
-        }
         
         val items = TodoList.todoItems
         visibleTasks.clear()

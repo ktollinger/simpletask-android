@@ -45,7 +45,6 @@ import hirondelle.date4j.DateTime
 import nl.mpcjanssen.simpletask.adapters.DrawerAdapter
 import nl.mpcjanssen.simpletask.adapters.ItemDialogAdapter
 import nl.mpcjanssen.simpletask.dao.gentodo.TodoItem
-import nl.mpcjanssen.simpletask.remote.FileStore
 import nl.mpcjanssen.simpletask.task.Priority
 import nl.mpcjanssen.simpletask.task.TToken
 import nl.mpcjanssen.simpletask.task.Task
@@ -58,7 +57,7 @@ import java.util.*
 import android.R.id as androidId
 
 
-class Simpletask : ThemedActivity() {
+class Simpletask : ThemedNoActionBarActivity() {
 
     enum class Mode {
         NAV_DRAWER, FILTER_DRAWER, SELECTION, MAIN
@@ -93,14 +92,9 @@ class Simpletask : ThemedActivity() {
         m_app = application as TodoApplication
         m_savedInstanceState = savedInstanceState
         val intentFilter = IntentFilter()
-        intentFilter.addAction(Constants.BROADCAST_ACTION_ARCHIVE)
-        intentFilter.addAction(Constants.BROADCAST_ACTION_LOGOUT)
         intentFilter.addAction(Constants.BROADCAST_UPDATE_UI)
-        intentFilter.addAction(Constants.BROADCAST_SYNC_START)
         intentFilter.addAction(Constants.BROADCAST_THEME_CHANGED)
         intentFilter.addAction(Constants.BROADCAST_DATEBAR_SIZE_CHANGED)
-        intentFilter.addAction(Constants.BROADCAST_SYNC_DONE)
-        intentFilter.addAction(Constants.BROADCAST_UPDATE_PENDING_CHANGES)
         intentFilter.addAction(Constants.BROADCAST_HIGHLIGHT_SELECTION)
 
         textSize = Config.tasklistTextSize ?: textSize
@@ -111,15 +105,8 @@ class Simpletask : ThemedActivity() {
 
         m_broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, receivedIntent: Intent) {
-                if (receivedIntent.action == Constants.BROADCAST_ACTION_ARCHIVE) {
-                    archiveTasks(null, false)
-                } else {
-                    if (receivedIntent.action == Constants.BROADCAST_ACTION_LOGOUT) {
-                        log.info(TAG, "Logging out from Dropbox")
-                        FileStore.logout()
-                        finish()
-                        startActivity(intent)
-                    } else if (receivedIntent.action == Constants.BROADCAST_UPDATE_UI) {
+
+                    if (receivedIntent.action == Constants.BROADCAST_UPDATE_UI) {
                         log.info(TAG, "Updating UI because of broadcast")
                         textSize = Config.tasklistTextSize ?: textSize
                         if (m_adapter == null) {
@@ -127,12 +114,6 @@ class Simpletask : ThemedActivity() {
                         }
                         m_adapter!!.setFilteredTasks()
                         updateDrawers()
-                    } else if (receivedIntent.action == Constants.BROADCAST_SYNC_START) {
-                        showListViewProgress(true)
-                    } else if (receivedIntent.action == Constants.BROADCAST_SYNC_DONE) {
-                        showListViewProgress(false)
-                    } else if (receivedIntent.action == Constants.BROADCAST_UPDATE_PENDING_CHANGES) {
-                        updateConnectivityIndicator()
                     } else if (receivedIntent.action == Constants.BROADCAST_HIGHLIGHT_SELECTION) {
                         handleIntent()
                     } else if ( receivedIntent.action == Constants.BROADCAST_THEME_CHANGED ||
@@ -140,7 +121,7 @@ class Simpletask : ThemedActivity() {
                         recreate()
                     }
                 }
-            }
+
         }
         localBroadcastManager!!.registerReceiver(m_broadcastReceiver, intentFilter)
 
@@ -153,7 +134,7 @@ class Simpletask : ThemedActivity() {
             actionBarClear?.setImageResource(R.drawable.ic_close_white_24dp)
         }
         val versionCode = BuildConfig.VERSION_CODE
-        if (m_app.isAuthenticated && Config.latestChangelogShown < versionCode) {
+        if (Config.latestChangelogShown < versionCode) {
             showChangelogOverlay(this)
             Config.latestChangelogShown = versionCode
         }
@@ -166,13 +147,6 @@ class Simpletask : ThemedActivity() {
                 val flags = resultCode - Activity.RESULT_FIRST_USER
                 shareTodoList(flags)
             }
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_PERMISSION -> m_app.switchTodoFile(Config.todoFileName)
         }
     }
 
@@ -237,16 +211,6 @@ class Simpletask : ThemedActivity() {
 
 
     private fun handleIntent() {
-        if (!m_app.isAuthenticated) {
-            log.info(TAG, "handleIntent: not authenticated")
-            startLogin()
-            return
-        }
-
-        // Check if we have SDCard permission for cloudless
-        if (!FileStore.getWritePermission(this, REQUEST_PERMISSION)) {
-            return
-        }
 
         mFilter = ActiveFilter(FilterOptions(luaModule = "mainui", showSelected = true))
 
@@ -354,23 +318,6 @@ class Simpletask : ThemedActivity() {
         updateDrawers()
     }
 
-    private fun updateConnectivityIndicator() {
-        // Show connectivity status indicator
-        // Red -> changes pending
-        // Yellow -> offline
-        val pendingChangesIndicator = findViewById(R.id.pendingchanges)
-        val offlineIndicator = findViewById(R.id.offline)
-        if (FileStore.changesPending()) {
-            pendingChangesIndicator?.visibility = View.VISIBLE
-            offlineIndicator?.visibility = View.GONE
-        } else if (!FileStore.isOnline){
-            pendingChangesIndicator?.visibility = View.GONE
-            offlineIndicator?.visibility = View.VISIBLE
-        } else {
-            pendingChangesIndicator?.visibility = View.GONE
-            offlineIndicator?.visibility = View.GONE
-        }
-    }
 
     private fun updateFilterBar() {
 
@@ -396,11 +343,6 @@ class Simpletask : ThemedActivity() {
                 getText(R.string.no_filter))
     }
 
-    private fun startLogin() {
-        m_app.startLogin(this)
-        finish()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         localBroadcastManager!!.unregisterReceiver(m_broadcastReceiver)
@@ -408,12 +350,10 @@ class Simpletask : ThemedActivity() {
 
     override fun onResume() {
         super.onResume()
-        FileStore.pause(false)
         handleIntent()
     }
 
     override fun onPause() {
-        FileStore.pause(true)
         val manager = listView?.layoutManager as LinearLayoutManager?
         if (manager!=null) {
             val position = manager.findFirstVisibleItemPosition()
@@ -473,19 +413,11 @@ class Simpletask : ThemedActivity() {
                 
                 inflater.inflate(R.menu.main, menu)
 
-                if (!FileStore.supportsSync()) {
-                    val mItem = menu.findItem(R.id.sync)
-                    mItem.isVisible = false
-                }
                 populateSearch(menu)
-                if (Config.showTodoPath()) {
-                    title = Config.todoFileName.replace("([^/])[^/]*/".toRegex(), "$1/")
-                } else {
-                    setTitle(R.string.app_label)
-                }
                 toggle.setDrawerIndicatorEnabled(true)
                 fab.visibility = View.VISIBLE
                 toolbar.visibility = View.GONE
+                setTitle(R.string.app_label)
             }
         }
         return super.onCreateOptionsMenu(menu)
@@ -602,7 +534,7 @@ class Simpletask : ThemedActivity() {
             dialog.dismiss()
             val priority = Priority.toPriority(priorityArr[which])
             TodoList.prioritize(tasks, priority)
-            TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+            TodoList.notifyChanged()
             closeSelectionMode()
         })
         builder.show()
@@ -619,10 +551,7 @@ class Simpletask : ThemedActivity() {
         for (t in tasks) {
             TodoList.complete(t, Config.hasKeepPrio(), Config.hasAppendAtEnd())
         }
-        if (Config.isAutoArchive) {
-            archiveTasks(null, false)
-        }
-        TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+        TodoList.notifyChanged()
     }
 
     private fun undoCompleteTasks(task: TodoItem) {
@@ -633,7 +562,7 @@ class Simpletask : ThemedActivity() {
 
     private fun undoCompleteTasks(tasks: List<TodoItem>) {
         TodoList.undoComplete(tasks)
-        TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+        TodoList.notifyChanged()
     }
 
     private fun deferTasks(tasks: List<TodoItem>, dateType: DateType) {
@@ -651,7 +580,7 @@ class Simpletask : ThemedActivity() {
                         startMonth++
                         val date = DateTime.forDateOnly(year, startMonth, day)
                         TodoList.defer(date.format(Constants.DATE_FORMAT), tasks, dateType)
-                        TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+                        TodoList.notifyChanged()
                     },
                             today.year!!,
                             today.month!! - 1,
@@ -664,7 +593,7 @@ class Simpletask : ThemedActivity() {
                 } else {
 
                     TodoList.defer(input, tasks, dateType)
-                    TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+                    TodoList.notifyChanged()
 
                 }
 
@@ -678,26 +607,9 @@ class Simpletask : ThemedActivity() {
             for (t in tasks) {
                 TodoList.remove(t)
             }
-            TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+            TodoList.notifyChanged()
             invalidateOptionsMenu()
         }, R.string.delete_task_title)
-    }
-
-    private fun archiveTasks(tasksToArchive: List<TodoItem>?, areYouSureDialog: Boolean) {
-
-        val archiveAction = {
-            if (Config.todoFileName == m_app.doneFileName) {
-                showToastShort(this, "You have the done.txt file opened.")
-            }
-            TodoList.archive(Config.todoFileName, m_app.doneFileName, tasksToArchive, Config.eol)
-            invalidateOptionsMenu()
-        }
-        if (areYouSureDialog) {
-            showConfirmationDialog(this, R.string.delete_task_message, DialogInterface.OnClickListener { dialogInterface, i -> archiveAction() }, R.string.archive_task_title)
-        } else {
-            archiveAction()
-        }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -735,13 +647,10 @@ class Simpletask : ThemedActivity() {
                 val shareText = selectedTasksAsString()
                 shareText(this@Simpletask, "Simpletask tasks", shareText)
             }
-            R.id.context_archive -> archiveTasks(checkedTasks, true)
             R.id.context_calendar -> createCalendarAppointment(checkedTasks)
             R.id.help -> showHelp()
             R.id.open_lua -> openLuaConfig()
-            R.id.sync -> FileStore.sync()
-            R.id.archive -> archiveTasks(null, true)
-            R.id.open_file -> m_app.browseForNewFile(this)
+
             R.id.history -> startActivity(Intent(this, HistoryScreen::class.java))
             R.id.btn_filter_add -> onAddFilterClick()
             R.id.clear_filter -> clearFilter()
@@ -753,8 +662,8 @@ class Simpletask : ThemedActivity() {
             R.id.priority -> prioritizeTasks(checkedTasks)
             R.id.update_lists -> updateLists(checkedTasks)
             R.id.update_tags -> updateTags(checkedTasks)
-            R.id.menu_export_filter_export -> exportFilters(File(Config.todoFile.parent, "saved_filters.txt"))
-            R.id.menu_export_filter_import -> importFilters(File(Config.todoFile.parent, "saved_filters.txt"))
+            // R.id.menu_export_filter_export -> // implement with share
+            // R.id.menu_export_filter_import -> // implement with textbox
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -825,40 +734,6 @@ class Simpletask : ThemedActivity() {
             return saved_filters
         }
 
-    fun importFilters (importFile: File) {
-        val r = Runnable() {
-            try {
-                val contents = FileStore.readFile(importFile.canonicalPath, null)
-                val jsonFilters = JSONObject(contents)
-                jsonFilters.keys().forEach {
-                    val filter = ActiveFilter(FilterOptions(luaModule = "mainui"))
-                    filter.initFromJSON(jsonFilters.getJSONObject(it))
-                    saveFilterInPrefs(it,filter)
-                }
-                localBroadcastManager?.sendBroadcast(Intent(Constants.BROADCAST_UPDATE_UI))
-            } catch (e: IOException) {
-                log.error(TAG, "Import filters, cant read file ${importFile.canonicalPath}", e)
-                showToastLong(this, "Error reading file ${importFile.canonicalPath}")
-            }
-        }
-        Thread(r).start()
-    }
-
-    fun exportFilters (exportFile: File) {
-        val jsonFilters = JSONObject()
-        savedFilters.forEach {
-            val jsonItem = JSONObject()
-            it.saveInJSON(jsonItem)
-            jsonFilters.put(it.name,jsonItem)
-        }
-	try {
-            FileStore.writeFile(exportFile,jsonFilters.toString(2))
-	    showToastShort(this, "Filters exported")
-	} catch (e: Exception) {
-            log.error(TAG, "Export filteres failed", e)
-	    showToastLong(this, "Error exporting filters")
-        }
-    }
     /**
      * Handle add filter click *
      */
@@ -1275,7 +1150,7 @@ class Simpletask : ThemedActivity() {
                 taskAge.paintFlags = taskAge.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
                 cb.setOnClickListener({
                     undoCompleteTasks(item)
-                    TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+                    TodoList.notifyChanged()
                 })
             } else {
                 taskText.paintFlags = taskText.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
@@ -1283,7 +1158,7 @@ class Simpletask : ThemedActivity() {
 
                 cb.setOnClickListener {
                     completeTasks(item)
-                    TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+                    TodoList.notifyChanged()
                 }
 
             }
@@ -1367,11 +1242,7 @@ class Simpletask : ThemedActivity() {
                         val url = links[which]
                         log.info(TAG, "" + actions[which] + ": " + url)
                         when (actions[which]) {
-                            ACTION_LINK -> if (url.startsWith("todo://")) {
-                                val todoFolder = Config.todoFile.parentFile
-                                val newName = File(todoFolder, url.substring(7))
-                                m_app.switchTodoFile(newName.absolutePath)
-                            } else if (url.startsWith("root://")) {
+                            ACTION_LINK -> if (url.startsWith("root://")) {
                                 val rootFolder = Config.localFileRoot
                                 val file = File(rootFolder, url.substring(7))
                                 actionIntent = Intent(Intent.ACTION_VIEW, Uri.fromFile(file))
@@ -1426,7 +1297,6 @@ class Simpletask : ThemedActivity() {
                     // Replace the array in the main thread to prevent OutOfIndex exceptions
                     visibleLines = newVisibleLines
                     notifyDataSetChanged()
-                    updateConnectivityIndicator()
                     updateFilterBar()
                     showListViewProgress(false)
                     if (Config.lastScrollPosition != -1) {
@@ -1578,7 +1448,7 @@ class Simpletask : ThemedActivity() {
                 }
             }
             TodoList.update(checkedTasks)
-            TodoList.notifyChanged(Config.todoFileName, Config.eol, m_app, true)
+            TodoList.notifyChanged()
         }
         builder.setNegativeButton(R.string.cancel) { dialog, id -> }
         // Create the AlertDialog
@@ -1651,7 +1521,6 @@ class Simpletask : ThemedActivity() {
 
         private val REQUEST_SHARE_PARTS = 1
         private val REQUEST_PREFERENCES = 2
-        private val REQUEST_PERMISSION = 3
 
         private val ACTION_LINK = "link"
         private val ACTION_SMS = "sms"

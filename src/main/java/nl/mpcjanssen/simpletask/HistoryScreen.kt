@@ -7,6 +7,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.widget.ScrollView
@@ -19,11 +20,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HistoryScreen : ThemedActivity() {
+class HistoryScreen : ThemedActionBarActivity() {
 
     private var log: Logger? = null
     private var m_cursor: Cursor? = null
-    private var toolbar_menu: Menu? = null
     private var mScroll = 0
     private var m_app: TodoApplication? = null
 
@@ -40,6 +40,7 @@ class HistoryScreen : ThemedActivity() {
             setTitle(title)
         }
         setContentView(R.layout.history)
+        initToolbar()
         displayCurrent()
     }
 
@@ -77,15 +78,13 @@ class HistoryScreen : ThemedActivity() {
     private val databaseFile: File
         get() = File(Daos.daoSession.database.path)
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
+    fun initToolbar(): Boolean {
 
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         val inflater = menuInflater
-        toolbar_menu = toolbar.menu
-        toolbar_menu!!.clear()
-        inflater.inflate(R.menu.history_menu, toolbar_menu)
-        updateMenu()
+        toolbar.menu.clear()
+        inflater.inflate(R.menu.history_menu, toolbar.menu)
+        //updateMenu()
         toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { item ->
             when (item.itemId) {
             // Respond to the action bar's Up/Home button
@@ -150,8 +149,7 @@ class HistoryScreen : ThemedActivity() {
         var name = ""
         if (this.m_cursor!!.count != 0) {
             todoContents = currentFileContents
-            date = this.m_cursor!!.getLong(2)
-            name = this.m_cursor!!.getString(1)
+            date = this.m_cursor!!.getLong(1)
 
         }
         val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
@@ -171,11 +169,12 @@ class HistoryScreen : ThemedActivity() {
         get() = m_cursor!!.getString(0)
 
     private fun updateMenu() {
-        if (toolbar_menu == null || m_cursor == null) {
+        val toolbar = findViewById(R.id.toolbar) as Toolbar
+        if (toolbar.menu == null || m_cursor == null) {
             return
         }
-        val prev = toolbar_menu!!.findItem(R.id.menu_prev)
-        val next = toolbar_menu!!.findItem(R.id.menu_next)
+        val prev = toolbar.menu!!.findItem(R.id.menu_prev)
+        val next = toolbar.menu!!.findItem(R.id.menu_next)
         if (m_cursor!!.isFirst || m_cursor!!.count < 2) {
             prev.isEnabled = false
         } else {

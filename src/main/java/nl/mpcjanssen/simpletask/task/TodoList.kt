@@ -31,19 +31,19 @@ package nl.mpcjanssen.simpletask.task
 
 import android.app.Activity
 import android.content.Intent
-import android.support.v4.content.LocalBroadcastManager
+
 import de.greenrobot.dao.query.Query
 import nl.mpcjanssen.simpletask.*
 import nl.mpcjanssen.simpletask.dao.Daos
+import nl.mpcjanssen.simpletask.dao.gen.TodoFile
 import nl.mpcjanssen.simpletask.dao.gentodo.TodoItem
 import nl.mpcjanssen.simpletask.dao.gentodo.TodoItemDao
-import nl.mpcjanssen.simpletask.remote.BackupInterface
-import nl.mpcjanssen.simpletask.remote.FileStore
-import nl.mpcjanssen.simpletask.remote.FileStoreInterface
+
 import nl.mpcjanssen.simpletask.sort.MultiComparator
 import nl.mpcjanssen.simpletask.util.*
-import java.io.IOException
+
 import java.util.*
+import kotlin.comparisons.compareBy
 
 
 /**
@@ -223,12 +223,12 @@ object TodoList {
         }
 
 
-    fun notifyChanged(todoName: String, eol: String, backup: BackupInterface?, save: Boolean) {
+    fun notifyChanged() {
         log.info(TAG, "Handler: Queue notifychanged")
+        val contents = todoItems.sortedWith(compareBy { it.line }).map { it.task.inFileFormat() }.joinToString(separator = "\n")
+        val fileToBackup = TodoFile(contents, Date())
+        Daos.backup(fileToBackup)
         ActionQueue.add("Notified changed", Runnable {
-            if (save) {
-                save(FileStore, todoName, backup, eol)
-            }
             mLists = null
             mTags = null
             broadcastRefreshUI(TodoApplication.app.localBroadCastManager)
@@ -250,71 +250,8 @@ object TodoList {
         return filteredTasks
     }
 
-    fun reload(backup: BackupInterface, lbm: LocalBroadcastManager, eol: String) {
-        lbm.sendBroadcast(Intent(Constants.BROADCAST_SYNC_START))
-        val filename = Config.todoFileName
-        if (FileStore.needsRefresh(Config.currentVersionId)) {
-            try {
-                todoItemsDao.database.beginTransaction()
-                todoItemsDao.deleteAll()
-                val items = ArrayList<TodoItem>(
-                        FileStore.loadTasksFromFile(filename, backup, eol).mapIndexed { line, text ->
-                            TodoItem(line.toLong(), Task(text), false)
-                        })
-                todoItemsDao.insertInTx(items)
-                todoItemsDao.database.setTransactionSuccessful()
-                Config.currentVersionId = FileStore.getVersion(filename)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-
-            } catch (e: IOException) {
-                log.error(TAG, "TodoList load failed: {}" + filename, e)
-                showToastShort(TodoApplication.app, "Loading of todo file failed")
-            } finally {
-                todoItemsDao.database.endTransaction()
-            }
-            log.info(TAG, "TodoList loaded, refresh UI")
-        } else {
-            log.info(TAG, "Todolist reload not needed, refresh UI")
-        }
-        notifyChanged(filename, eol, backup, false)
-    }
-
-
-    private fun save(fileStore: FileStoreInterface, todoFileName: String, backup: BackupInterface?, eol: String) {
-        val items = todoItems
-        try {
-            val lines = items.sortedBy {it.line}.map {
-                it.task.inFileFormat()
-            }
-
-            log.info(TAG, "Saving todo list, size ${lines.size}")
-            fileStore.saveTasksToFile(todoFileName, lines, backup, eol = eol, updateVersion = true)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
     fun update(items : List<TodoItem>) {
         todoItemsDao.updateInTx(items)
-    }
-
-    fun archive(todoFilename: String, doneFileName: String, tasks: List<TodoItem>?, eol: String) {
-        ActionQueue.add("Archive", Runnable {
-            val items = todoItems
-            val tasksToArchive = tasks ?: items
-
-            val completedTasks = tasksToArchive.filter { it.task.isCompleted() }
-            try {
-                FileStore.appendTaskToFile(doneFileName, completedTasks.map { it.task.text }, eol)
-                todoItemsDao.deleteInTx(completedTasks)
-                notifyChanged(todoFilename, eol, null, true)
-            } catch (e: IOException) {
-                e.printStackTrace()
-                showToastShort(TodoApplication.app, "Task archiving failed")
-            }
-        })
     }
 
     fun isSelected(item: TodoItem): Boolean {
