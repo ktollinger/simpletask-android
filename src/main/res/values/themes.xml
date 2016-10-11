@@ -16,7 +16,6 @@
             <!-- This isn't working right now, I think. -->
             <item name="colorControlHighlight">@color/simple_alpha33</item>
         <item name="alertDialogTheme">@style/AppCompatAlertDialogStyle</item>
-        <item name="actionOverflowButtonStyle">@style/WhiteActionButton</item>
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
         <item name="actionMenuTextColor">@+color/white</item>
         <item name="android:actionMenuTextColor">@+color/white</item>
@@ -30,10 +29,7 @@
             <!-- This isn't working right now, I think. -->
             <item name="colorControlHighlight">@color/simple_alpha33</item>
         <item name="alertDialogTheme">@style/AppCompatAlertDialogStyle</item>
-        <item name="actionOverflowButtonStyle">@style/WhiteActionButton</item>
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
     </style>
 
     <!-- Dark theme -->
@@ -46,9 +42,6 @@
             <item name="colorControlHighlight">@color/simple_alpha33</item> 
         <item name="android:textColorPrimary">@color/white</item>
         <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark</item>
-        <item name="actionOverflowButtonStyle">@style/WhiteActionButton</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
     </style>
 
     <style name="AppTheme.ActionBar" parent="Theme.AppCompat">
@@ -71,8 +64,10 @@
         <item name="colorPrimaryDark">@color/black</item>
         <item name="colorAccent">@color/simple_accent_dark</item>
         <item name="android:colorBackground">@color/black</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
+        <!-- Applies to popup menus that we create manually -->
+        <item name="android:popupMenuStyle">@style/DarkPopupMenu</item>
+        <!-- Applies to overflow menus -->
+        <item name="popupTheme">@style/BlackPopupTheme</item>
     </style>
 
     <style name="AppTheme.Black.ActionBar" parent="AppTheme.ActionBar">
@@ -81,7 +76,9 @@
         <item name="colorAccent">@color/simple_accent_dark</item>
         <item name="colorControlActivated">@color/simple_primary_dark</item>
         <item name="android:colorBackground">@color/black</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
+        <!-- Applies to popup menus that we create manually -->
+        <item name="android:popupMenuStyle">@style/DarkPopupMenu</item>
+        <!-- Applies to overflow menus -->
+        <item name="popupTheme">@style/BlackPopupTheme</item>
     </style>
 </resources>
