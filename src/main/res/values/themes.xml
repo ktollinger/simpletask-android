@@ -3,8 +3,6 @@
     <style name="LaunchScreen" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:windowBackground">@color/simple_primary</item>
         <item name="colorPrimaryDark">@color/simple_primary_dark</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
     </style>
 
     <!-- Light theme -->
@@ -17,8 +15,6 @@
             <item name="colorControlHighlight">@color/simple_alpha33</item>
         <item name="alertDialogTheme">@style/AppCompatAlertDialogStyle</item>
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
     </style>
 
     <style name="AppTheme.Light.DarkActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -53,9 +49,6 @@
             <item name="colorControlHighlight">@color/simple_alpha33</item> 
         <item name="android:textColorPrimary">@color/white</item>
         <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark</item>
-        <item name="actionOverflowButtonStyle">@style/WhiteActionButton</item>
-        <item name="actionMenuTextColor">@+color/white</item>
-        <item name="android:actionMenuTextColor">@+color/white</item>
     </style>
 
     <!-- Black theme -->

@@ -35,7 +35,7 @@ import android.content.Intent
 import de.greenrobot.dao.query.Query
 import nl.mpcjanssen.simpletask.*
 import nl.mpcjanssen.simpletask.dao.Daos
-import nl.mpcjanssen.simpletask.dao.gen.TodoFile
+import nl.mpcjanssen.simpletask.dao.genbackup.TodoFile
 import nl.mpcjanssen.simpletask.dao.gentodo.TodoItem
 import nl.mpcjanssen.simpletask.dao.gentodo.TodoItemDao
 
