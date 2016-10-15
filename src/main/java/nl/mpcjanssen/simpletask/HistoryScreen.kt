@@ -74,7 +74,7 @@ class HistoryScreen : ThemedActionBarActivity() {
     }
 
     private val databaseFile: File
-        get() = File(Daos.daoSession.database.path)
+        get() = File(Daos.backupDao.database.path)
 
     fun initToolbar(): Boolean {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
