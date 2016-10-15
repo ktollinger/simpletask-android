@@ -67,7 +67,7 @@ class AddTask : ThemedActionBarActivity() {
 
         // text
         textInputField = findViewById(R.id.taskText) as EditText
-        Config.setEditTextHint(textInputField, R.string.tasktexthint)
+        setHint()
 
         if (share_text != null) {
             textInputField.setText(share_text)
@@ -234,7 +234,7 @@ class AddTask : ThemedActionBarActivity() {
             }
             R.id.menu_show_edittext_hint -> {
                 Config.isShowEditTextHint = !Config.isShowEditTextHint
-                Config.setEditTextHint(textInputField, R.string.tasktexthint)
+                setHint()
                 item.isChecked = !item.isChecked
             }
             R.id.menu_help -> {
@@ -251,6 +251,13 @@ class AddTask : ThemedActionBarActivity() {
         startActivity(i)
     }
 
+    private fun setHint() {
+        if (Config.isShowEditTextHint) {
+            textInputField.setHint(R.string.tasktexthint)
+        } else {
+            textInputField.setHint(null)
+        }
+    }
 
     private fun saveTasksAndClose() {
         val todoList = TodoList
@@ -278,12 +285,12 @@ class AddTask : ThemedActionBarActivity() {
                 m_backup.removeAt(0)
             } else {
                 val t: Task
-                if (Config.hasPrependDate()) {
+                if (Config.hasPrependDate) {
                     t = Task(task.text, todayAsString)
                 } else {
                     t = task
                 }
-                todoList.add(t, Config.hasAppendAtEnd())
+                todoList.add(t, Config.hasAppendAtEnd)
             }
         }
 
@@ -324,7 +331,7 @@ class AddTask : ThemedActionBarActivity() {
                             today.month!! - 1,
                             today.day!!)
 
-                    val showCalendar = Config.showCalendar()
+                    val showCalendar = Config.showCalendar
                     dialog.datePicker.calendarViewShown = showCalendar
                     dialog.datePicker.spinnersShown = !showCalendar
                     dialog.show()
@@ -369,7 +376,7 @@ class AddTask : ThemedActionBarActivity() {
         val idx = getCurrentCursorLine()
         val task = getTasks().getOrElse(idx) { Task("") }
 
-        val projects = sortWithPrefix(items, Config.sortCaseSensitive(), null)
+        val projects = sortWithPrefix(items, Config.sortCaseSensitive, null)
 
         val builder = AlertDialog.Builder(this)
         @SuppressLint("InflateParams") val view = layoutInflater.inflate(R.layout.single_task_tag_dialog, null, false)
@@ -450,7 +457,7 @@ class AddTask : ThemedActionBarActivity() {
         val idx = getCurrentCursorLine()
         val task = getTasks().getOrElse(idx) { Task("") }
 
-        val lists = sortWithPrefix(items, Config.sortCaseSensitive(), null)
+        val lists = sortWithPrefix(items, Config.sortCaseSensitive, null)
 
         val builder = AlertDialog.Builder(this)
         @SuppressLint("InflateParams") val view = layoutInflater.inflate(R.layout.single_task_tag_dialog, null, false)
